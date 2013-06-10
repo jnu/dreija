@@ -1,0 +1,81 @@
+<div class="row-fluid">
+
+    <div class="row-fluid text-center head-space" id="target-latest">
+        <div class="span12">
+            <h2 id="latest">Latest</h2>
+            <i class="icon-leaf"></i>
+        </div>
+    </div>
+
+    <div class="row-fluid head-space">
+        <div class="span4 offset4">
+            <% if((latest||[]).length) { %>
+                <p>
+                    My most recent post is
+                    <a href="<% print(latest[0].get('link')); %>">
+                        <% print(latest[0].get('title')); %>
+                    </a>,
+                    which I wrote <% print(latest[0].get('whichiwrote')); %>. 
+                    (<% print(latest[0].get('date').format('mmm d')); %>)
+                </p>
+            <% } %>
+
+            <% if((latest||[]).length>1) { %>
+                <p>
+                    Before that I wrote
+                    <a href="<% print(latest[1].get('link')); %>">
+                        <% print(latest[1].get('title')); %>
+                    </a>.
+                    (<% print(latest[1].get('date').format('mmm d')); %>)
+                </p>
+            <% } %>
+
+            <p>
+                You'll find a listing of other things I've written below.
+            </p>
+        </div>
+    </div>
+
+    <div class="row-fluid text-center head-space">
+        <div class="span12">
+            <h2 id="blog-index">Contents</h2>
+            <!-- Breadcrumbs -->
+            <% if((categories||[]).length) { %>
+                <h4><a href="/">home</a>
+                <% var max=categories.length-1, path="/category";
+                categories.forEach(function(cat, i) { path+='/'+cat.clean; %>
+                &gt;
+                <% if(i<max) { %>
+                    <a href="<%= path %>"><%= cat.name %></a>
+                <% }else{ %>
+                    <span><%= cat.name %></span>
+                <% }
+                }); %>
+                </h4>
+            <% } %>
+            <!-- End breadcrumbs -->
+            <i class="icon-leaf"></i>
+        </div>
+    </div>
+
+
+
+    <div class="row-fluid head-space">
+        <div class="span8 offset4">
+            <div id="index-cont"></div>
+        </div>
+    </div>
+
+</div>
+
+<script type="text/javascript">
+$('div.title>a').mouseover(function() {
+    var myNumCont = 'div.numeral.'+ $(this).attr('class');
+    $(myNumCont + ' .indenum').hide();
+    $(myNumCont + ' .indecon').show();
+}).mouseout(function() {
+    var myNumCont = 'div.numeral.'+ $(this).attr('class');
+    $(myNumCont + ' .indecon').hide();
+    $(myNumCont + ' .indenum').show();
+});
+</script>

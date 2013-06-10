@@ -1,0 +1,198 @@
+/*
+Specific blog styles. General theming is done with bootstrap;
+see /styles/bootstrap.css
+*/
+
+@import url(http://fonts.googleapis.com/css?family=Rufina&subset=latin,latin-ext);
+@import url(http://fonts.googleapis.com/css?family=Lato:400,400italic);
+
+body{
+    margin: 0;
+}
+
+img#wpstats{ display: none;}
+
+.page-header img{cursor: pointer;}
+
+.foot-img{
+    bottom: 0;
+}
+
+#main {
+    margin: 20px 20px 0 20px;
+}
+
+.container-fluid{
+    background-color:#fcfbf5;
+}
+
+#footer-cont {
+    overflow: hidden;
+}
+
+.footer{
+    padding-top: 80px;
+    background-color:#333333;
+    position: relative;
+    left: -5%;
+    width: 110%;
+}
+
+.head-space{margin:30px 0;}
+
+div.numeral {
+    display: inline-block;
+    width: 60px;
+    vertical-align: top;
+    position: relative;
+}
+
+div.title {
+    display: inline-block;
+    width: 440px;
+    word-spacing: .1em;
+}
+
+div.indexline {
+    margin-bottom: 20px;
+    margin-top: 20px;
+    font-weight: bold;
+    vertical-align: top;
+    word-spacing: 0em;
+}
+
+div.index {
+    display: inline;
+}
+    
+
+div.h3 {
+    margin-bottom: 30px;
+    margin-top: 50px;
+}
+
+div.h4 {
+    left: 30px;
+    position: relative;
+}
+
+div.h5 {
+    left: 60px;
+    position: relative;
+}
+
+div.site-info {
+    font-size: 8px;
+    color: #aaa;
+}
+
+
+span.date {
+    font-size: .7em;
+}
+
+
+div.footnote {
+    font-size:.7em;
+    margin-top: 20px;
+    margin-bottom: 30px;
+}
+
+code {
+    line-height: 1.5em;
+}
+
+/* Social sprite */
+.social {
+    display: inline-block;
+    background-image: url('socialsprite.png');
+    width: 50px;
+    height: 50px;
+}
+.reddit { background-position: 0px 0px; }
+.reddit:hover { background-position: 0 -50px }
+.twitter { background-position: -50px 0; }
+.twitter:hover { background-position: -50px -50px; }
+.tumblr { background-position: -100px 0; }
+.tumblr:hover { background-position: -100px -50px; }
+.facebook { background-position: -150px 0; }
+.facebook:hover { background-position: -150px -50px; }
+.googleplus { background-position: -200px 0; }
+.googleplus:hover { background-position: -200px -50px; }
+
+
+/* --- Sprite cutting --- */
+.sprite {
+    display: inline-block;
+    background-image: url('sprite.png');
+}
+
+.sprite.flare.title {
+    width: 20px;
+    height: 10px;
+}
+
+.sprite.flare.title.left {
+    background-position: -80px -60px;
+}
+
+.sprite.flare.title.right {
+    background-position: -80px -70px;
+}
+
+.sprite.icon {
+    width: 20px;
+    height: 20px;
+}
+
+
+/* -- Index number / icon sprites --- */
+.indecon {
+    display: none;
+    position: absolute;
+}
+
+.indenum {
+    display: inline-block;
+    position: absolute;
+}
+
+/* -- Badge sprites-- */
+.ico {
+    width: 20px;
+    height: 20px;
+}
+
+.ico.html5 {
+    background-position: 0px -80px;
+}
+
+.ico.php {
+    background-position: -20px -80px;
+}
+
+.ico.python {
+    background-position: -40px -80px;
+}
+
+pre { border: thin solid #aaa; }
+
+
+
+/* File Icon Sprites ---  */
+
+.sprite.icon.file {
+    position: relative;
+    top: 2px;
+    margin-right: 10px;
+}
+
+span.dlborder {
+    padding: 10px;
+    border: thin dashed #a00;
+}
+
+/* DB ICON */
+a[href$='.db'] .sprite.icon {
+    background-position: 0px -100px;
+}
