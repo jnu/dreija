@@ -28,7 +28,7 @@ requirejs.config({
         blogmachine : {
             deps: ['jquery', 'underscore', 'backbone'],
             exports: 'BlogMachine'
-        },
+        }
     }
 });
 

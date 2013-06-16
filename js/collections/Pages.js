@@ -11,6 +11,7 @@ function(Config, $, Backbone, Page, Router) {
         model: Page,
         url: Config.dbName,
         dbView : 'index',
+        comparator : Config.comparator,
         _firstLoaded : false,
         //
         sync: function(method, collection, options) {

@@ -18,13 +18,7 @@ function(Config, $, Backbone, IndexLine) {
         //
         render: function() {
             var that = this,
-                sortedPosts = this.collection.sortBy(function(p){
-                // Sort posts by category. Since category hierarchies
-                // are stored as a string delimited by '>' (e.g. "a>b>c>d")
-                // an alphabetical sort will put everything in a desirable
-                // order.
-                return p.get('category');
-            }),
+                sortedPosts = this.collection.sort(),
                 currentCategories = [],
                 counters = [],
                 pageCtr = 0,
@@ -44,7 +38,7 @@ function(Config, $, Backbone, IndexLine) {
                     return counters;
                 };
 
-            _.forEach(sortedPosts, function(currentPost, i) {
+            sortedPosts.forEach(function(currentPost, i) {
                 // Iterate through sorted posts and create IndexLine views for
                 // each post. Create IndexLines for category links on the way.
                 var cleanCats = (currentPost.get('cleanCategories') || []),
@@ -96,7 +90,7 @@ function(Config, $, Backbone, IndexLine) {
                                 hDepth : j+3,
                                 link : '/category'+ path,
                                 title : cats[j],
-                                sprite: ''
+                                sprite: Blog.cache.spriteMap[cats[j]]
                             }
                         });
 

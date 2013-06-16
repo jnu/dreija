@@ -175,6 +175,18 @@ code {
     background-position: -40px -80px;
 }
 
+.ico.nodejs {
+    background-position: -80px -100px;
+}
+
+.ico.backbonejs {
+    background-position: -40px -100px;
+}
+
+.ico.couchdb {
+    background-position: -60px -100px;
+}
+
 pre { border: thin solid #aaa; }
 
 

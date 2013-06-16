@@ -1,6 +1,9 @@
-<div class="row-fluid text-center">
+<div class="row-fluid text-center head-space">
     <div class="span4 offset4">
         <h2><%= title %></h2>
+        <% if(typeof sprite!=='undefined') { %>
+        <span class="ico sprite" style="background-position: <%= sprite %>;"></span>
+        <% } %>
     </div>
 </div>
 

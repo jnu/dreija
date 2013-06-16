@@ -59,7 +59,11 @@ function() {
                 "class": "couchdb"
             }
         ],
-        "homeEl": "#home"
+        "homeEl": "#home",
+        comparator: function(item) {
+            var c = item.get('category') || 'zzzzzzzzzzzzz';
+            return [c, item.get('created')];
+        },
     };
 
     return c;

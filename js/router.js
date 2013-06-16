@@ -2,9 +2,10 @@ define([
     'jquery',
     'backbone',
     'views/Home',
-    'views/Page'
+    'views/Page',
+    'config'
 ],
-function($, Backbone, Home, Page) {
+function($, Backbone, Home, Page, Config) {
    
    var r = Backbone.Router.extend({
         initialize : function(attr) {
@@ -60,9 +61,12 @@ function($, Backbone, Home, Page) {
 
             var subset = Blog.pages.filter(function(p){
                 return p.get('cleanCategories').join('/') == category;
-            })
+            }),
                 c = new Backbone.Collection(subset),
                 cats = [];
+
+            // Inherit comparator
+            c.comparator = Config.comparator;
 
             if(subset.length) {
                 var clean = subset[0].get('cleanCategories'),
