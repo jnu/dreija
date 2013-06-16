@@ -2,3 +2,4 @@
 *.min.js
 .DS_Store
 *.dump
+*.psd
