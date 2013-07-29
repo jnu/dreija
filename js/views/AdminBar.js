@@ -30,7 +30,7 @@ function(Config, Login, $, Backbone) {
         //
         render : function() {
             var that=this,
-                bar = Blog.render('adminBar', {});
+                bar = Blog.render('adminbar', {});
 
             this.$el.html(bar);
             this.$el.appendTo('body');
