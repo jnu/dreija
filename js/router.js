@@ -3,9 +3,14 @@ define([
     'backbone',
     'views/Home',
     'views/Page',
+    'views/AdminBar',
+    'views/EditPage',
+    'views/Settings',
+    'views/NotFound',
     'config'
 ],
-function($, Backbone, Home, Page, Config) {
+function($, Backbone,
+    Home, Page, AdminBar, EditPage, Settings, NotFound, Config) {
    
    var r = Backbone.Router.extend({
         initialize : function(attr) {
@@ -14,6 +19,8 @@ function($, Backbone, Home, Page, Config) {
                 routingTable = [
                 // Opposite order of regular "routes" key: generic -> specific
                 [ "*page",                            "getPostByID"  ],
+                [ "_admin/*page",                     "adminStuff"   ],
+                [ "_admin/_editPage/:id",             "adminEditPage"],
                 [ /([0-9]{4})\/([0-9]{1,2})\/(.*)/,   "wpRoute"      ],
                 [ "posts/:id",                        "getPostByID"  ],
                 [ "category/*category",               "listCategory" ],
@@ -36,6 +43,68 @@ function($, Backbone, Home, Page, Config) {
         // 
         // Actions
         //
+        adminStuff : function(page) {
+            page = page || "";
+
+            if(!Blog.blogview.childViews.adminBar) {
+                Blog.blogview.childViews.adminBar = new AdminBar;
+            }
+            Blog.blogview.childViews.adminBar.toggleEditButton(false);
+
+            switch(page) {
+                case "_newPost":
+                    var np = new EditPage({});
+                    Blog.blogview.setPageView(np);
+                    np.render();
+                    Blog.blogview.childViews.adminBar.setActive('newPost');
+                    break;
+                case "_settings":
+                    var sv = new Settings;
+                    Blog.blogview.setPageView(sv);
+                    sv.render();
+                    Blog.blogview.childViews.adminBar.setActive('settings');
+                    break;
+                default:
+                    // Trigger route "page" in main router controller
+                    this.navigate(page, {trigger: true, replace: true});
+                    Blog.blogview.childViews.adminBar.toggleEditButton(true);
+                    Blog.blogview.childViews.adminBar.setActive('/');
+            }
+        },
+        //
+        adminEditPage : function(id) {
+            if(!Blog.blogview.childViews.adminBar) {
+                Blog.blogview.childViews.adminBar = new AdminBar;
+            }
+            var m = Blog.pages.get(id, {});
+
+            m.fetch({
+                success: function() {
+                    var ep = new EditPage({model:m});
+
+                    Blog.blogview.setPageView(ep);
+                    ep.render();
+                }
+            });
+        },
+        //
+        _edit : function() {
+            // Go to page for editing current page
+            var id;
+            if(Blog.blogview.childViews.page
+                && Blog.blogview.childViews.page.model) {
+                id = Blog.blogview.childViews.page.model.id;
+            }
+
+            if(id!==undefined) {
+                this.navigate("_admin/_editPage/"+ id, {trigger: true});
+            }else{
+                return false;
+            }
+        },
+        //
+        //
+        //
         getHomePage : function() {
             var hp = new Home({
                 collection: Blog.pages
@@ -46,8 +115,22 @@ function($, Backbone, Home, Page, Config) {
             hp.render();
         },
         //
+        getNotFound : function() {
+            var nf = new NotFound;
+            Blog.blogview.setPageView(nf);
+            nf.render();
+        },
+        //
         getPostByID : function(id) {
-            var m = Blog.pages.get(id);
+            if(id.toLowerCase()=='_admin') {
+                return this.adminStuff();
+            }
+
+            var m = Blog.pages.get(id, null);
+
+            if(m==null) {
+                return this.getNotFound();
+            }
 
             Blog.blogview.setPageView(new Page({model: m}));
 
@@ -91,20 +174,31 @@ function($, Backbone, Home, Page, Config) {
         },
         //
         wpRoute : function(year, month, title) {
+            var reqPost = this._resolveWPRoute(year, month, title);
+
+            if(reqPost) {
+                return this.getPostByID(reqPost.id);
+            }else{
+                return this.getHomePage();
+            }
+        },
+        //
+        _resolveWPRoute : function(year, month, title) {
+            // Find post in index by year-month-title. Return null on fail.
             year = parseInt(year),
             month = parseInt(month),
             title = title.replace(/\/$/, '');
 
-            var reqPost = Blog.pages.filter(function(p) {
+            var rp = Blog.pages.filter(function(p) {
                 return p.get('date').getFullYear() == year
                     && (p.get('date').getMonth()+1) == month
                     && (p.get('cleanTitle')==title || p.get('oldUrl')==title);
             });
 
-            if(reqPost.length) {
-                return this.getPostByID(reqPost[0].id);
+            if(rp.length) {
+                return rp[0];
             }else{
-                return this.getHomePage();
+                return null;
             }
         }
     });

@@ -190,6 +190,14 @@ code {
 pre { border: thin solid #aaa; }
 
 
+/* Admin bar --- */
+#admin-bar {
+    width: 100%;
+    position: fixed;
+    left: 0;
+    top: 0;
+}
+
 
 /* File Icon Sprites ---  */
 

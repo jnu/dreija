@@ -54,13 +54,15 @@ function(Config, $, Backbone, IndexLine) {
                     var pfx = "Appendix "+ String.fromCharCode(64+(++pageCtr)),
                         newPageILV = new IndexLine({
                         properties: {
+                            date: currentPost.get('date', new Date),
                             model: currentPost,
                             numId: ''+i+j+i,
                             fNum: _formatter(counters, j),
                             hDepth : j+3,
                             link: '/'+  (currentPost.id),
                             title: pfx + "&mdash;" + currentPost.get('title'),
-                            sprite: currentPost.get('sprite')
+                            sprite: currentPost.get('sprite'),
+                            type: 'page'
                         }
                     });
 
@@ -84,13 +86,15 @@ function(Config, $, Backbone, IndexLine) {
                         // Add new category IndexLine
                         var newCategoryILV = new IndexLine({
                             properties: {
+                                date: currentPost.get('date', new Date),
                                 model: currentPost,
                                 numId: '' + (j+1) + i,
                                 fNum: _formatter(counters, j),
                                 hDepth : j+3,
                                 link : '/category'+ path,
                                 title : cats[j],
-                                sprite: Blog.cache.spriteMap[cats[j]]
+                                sprite: Blog.cache.spriteMap[cats[j]],
+                                type: 'cat'
                             }
                         });
 
@@ -113,9 +117,10 @@ function(Config, $, Backbone, IndexLine) {
                         fNum: _formatter(counters, j),
                         hDepth : cats.length + 3,
                         link : Blog.wp.createPermalink(currentPost, 'post'),
-                        date : currentPost.get('date'),
+                        date : currentPost.get('date', new Date),
                         title : currentPost.get('title'),
-                        sprite: currentPost.get('sprite')
+                        sprite: currentPost.get('sprite'),
+                        type: 'post'
                     }
                 });
 

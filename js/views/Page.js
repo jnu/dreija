@@ -6,7 +6,7 @@ define([
 ],
 function(Config, $, Backbone, Social) {
    
-   var v = Backbone.View.extend({
+    var v = Backbone.View.extend({
         tagName: 'div',
         id: Config.contentEl,
         //

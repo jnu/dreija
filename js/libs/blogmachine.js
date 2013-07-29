@@ -48,14 +48,144 @@
             return this.cache.templates[tplName](tplData);
         },
         //
-        queryDB : function(query, force, callback) {
+        auth : function(username, password, opts) {
+            $.ajax({
+                url: this.vars.dbHost + '/_session',
+                method: 'POST',
+                dataType: 'json',
+                data: {
+                    name: username,
+                    password: password
+                },
+                async: true,
+                success: function(data) {
+                    if(data.ok) {
+                        if(opts.success) {
+                            opts.success(username);
+                        }
+                    }else{
+                        if(opts.fail) {
+                            opts.fail(username);
+                        }
+                    }
+                },
+                error: function(data){
+                    if(opts.fail) {
+                        opts.fail(data, username);
+                    }
+                }
+            });
+        },
+        //
+        getUUID : function(async, callback) {
+            var u = null;
+
+            $.ajax({
+                url: this.vars.dbHost + '/_uuids',
+                method: 'GET',
+                dataType: 'json',
+                async: async,
+                success : function(data) {
+                    if(data.uuids) {
+                        u = data.uuids[0];
+                    }
+
+                    if(async && callback) {
+                        callback(u);
+                    }
+                }
+            });
+
+            return u;
+        },
+        //
+        putToDB : function(id, data, callback) {
+            return this.queryDB(id, 'PUT', true, data, callback);
+        },
+        //
+        getFromDB : function(id, force, callback) {
+            if(typeof force=='function') {
+                callback = force;
+            }
+
+            force = force || false;
+
+            return this.queryDB(id, 'GET', force, {}, callback);
+        },
+        //
+        deleteFromDB : function(id, callback) {
+            return this.queryDB(id, 'DELETE', true, {}, callback);
+        },
+        //
+        queryDB : function() {
             // Interacts with CouchDB's RESTful API
             // Use 'force=true' to bypass cache for given request
             var that = this,
-                host = this.vars.dbHost + '/' + this.vars.dbName + '/' + query;
+                host = '',
+                query = '',
+                data = {},
+                force = false,
+                callback = function() {},
+                method = 'GET';
 
-            // Normal calling scheme is just (query, callback)
-            if(typeof force==='function') callback = force;
+            switch(arguments.length) {
+                // Sort out arguments: query, method, force, data, callback
+                // All but query are optional.
+                case 1:
+                    query = arguments[0];
+                    break;
+
+                case 2:
+                    query = arguments[0];
+                    if(typeof arguments[1]==='function') {
+                        callback = arguments[1];
+                    }else if(typeof arguments[1]==='boolean') {
+                        force = arguments[1];
+                    }else if(typeof arguments[1]==='object') {
+                        data = arguments[1];
+                    }else{
+                        method = arguments[1];
+                    }
+                    break;
+
+                case 3:
+                    query = arguments[0];
+                    method = arguments[1];
+
+                    if(typeof arguments[2]==='function') {
+                        callback = arguments[2];
+                    }else if(typeof arguments[2]==='object'){
+                        data = arguments[2];
+                    }else{
+                        force = arguments[2];
+                    }
+                    break;
+
+                case 4:
+                    query = arguments[0];
+                    method = arguments[1];
+                    force = arguments[2];
+
+                    if(typeof arguments[3]==='function') {
+                        callback = arguments[3];
+                    }else{
+                        data = arguments[3];
+                    }
+                    break;
+
+                case 5:
+                    query = arguments[0];
+                    method = arguments[1];
+                    force = arguments[2];
+                    data = arguments[3];
+                    callback = arguments[4];
+                    break;
+
+                default:
+                    return false;
+            }
+
+            host = this.vars.dbHost + '/' + this.vars.dbName + '/' + query;
 
             // Designate cache for requests to DB
             if(!this.cache.db) this.cache.db = {};
@@ -64,27 +194,46 @@
                 // Execute request if not already in cache or forced refresh
                 $.ajax({
                     url: host,
-                    method: 'GET',
+                    method: method,
                     async: true,
+                    data: JSON.stringify(data),
                     dataType: 'json',
-                    success: function(data) {
-                        // First save data in cache
-                        that.cache.db[query] = data;
+                    success: function(rd) {
+                        if(method=='GET') {
+                            // First save data in cache
+                            that.cache.db[query] = rd;
+                        }else{
+                            that.cache.db[query] = data;
+                        }
                         // execute callback
-                        if(callback) callback(data);
+                        if(callback!==undefined) {
+                            callback(rd);
+                        }
                     },
+                    error: function(data) {
+                        if(callback!==undefined) {
+                            callback(data);
+                        }
+                    }
                 });
             }else{
                 // Execute callback with cached response
                 // (Redundant because AJAX call is asynchronous)
-                if(callback) callback(this.cache.db[query]);
+                if(callback) {
+                    callback(this.cache.db[query]);
+                }
             }
         },
         //
         viewDB : function(view, force, callback) {
             // Convenience function for requesting a view by name
+            if(typeof force==='function') {
+                callback = force;
+            }
+            force = force===true;
+
             var query = "_design/"+ this.vars.dbDesignDoc +"/_view/"+ view;
-            this.queryDB(query, force, callback);
+            this.queryDB(query, 'GET', force, {}, callback);
         },
         //
         wp : {

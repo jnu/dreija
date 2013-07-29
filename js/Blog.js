@@ -17,7 +17,7 @@ function($, _, Backbone, BlogMachine, Config, BlogView, Pages) {
 
             var that = this;
 
-            this.queryDB(Config.spriteMap, function(metaData) {
+            this.getFromDB(Config.spriteMap, function(metaData) {
                 // Just save meta in cache
                 that.cache.spriteMap = metaData;
 

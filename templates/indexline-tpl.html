@@ -1,16 +1,16 @@
 <div class="index h<%= hDepth %>">
     <div class="numeral <%- numId %>">
         <div class="indenum" style="display: block;">
-            <%- fNum %>.
+            <%= fNum %>.
         </div>
         <div class="sprite icon indecon"
              style="display: none;
-                    background-position: <%- sprite %>">
+                    background-position: <%= sprite %>">
          </div>
     </div>
     <div class="title">
-        <a href="<%- link %>" class="<%- numId %>"><%= title %></a>
-        <% if(typeof date!='undefined') { %>
+        <a href="<%= link %>" class="<%= numId %>"><%= title %></a>
+        <% if(typeof date!='undefined' && type!='cat') { %>
             <span class="date">
 (<span class="value"><% print(date.format('mmm d, yy')); %></span>)
             </span>

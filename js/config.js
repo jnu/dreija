@@ -22,6 +22,7 @@ function() {
         "latestHeader": "Latest",
         "contentsHeader": "Contents",
         "dividerIconClass": "icon-leaf",
+        "author": "Joseph Nudell",
         "copyright": "\"This is all my fault!\" &mdash; Joe Nudell, 2013",
         "navLinks": [
             {
