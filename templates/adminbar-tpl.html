@@ -3,18 +3,19 @@
         <a class="brand">Admin</a>
         <ul class="nav">
             <li class="active"><a href="/_admin/">Site</a></li>
+            <li><a href="/_admin/_drafts">Drafts</a></li>
             <li><a href="/_admin/_newPost">New Post</a></li>
             <li><a href="/_admin/_settings">Settings</a></li>
         </ul>
 
         <p class="navbar-text pull-right">
-            <span class="hide" id="login"></span>
-
             <button
                 id="edit"
                 onclick="javascript:Blog.router._edit()">
                 Edit
             </button>
+
+            <span class="hide" id="login"></span>
 
             <a onclick="javascript:Blog.blogview.childViews.adminBar.remove();"
                 id="navbarex">

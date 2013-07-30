@@ -2,31 +2,61 @@ define([
     'config',
     'jquery',
     'backbone',
-    'models/Page',
-    'router'
+    'models/Page'
 ],
-function(Config, $, Backbone, Page, Router) {
+function(Config, $, Backbone, Page) {
 
     var c = Backbone.Collection.extend({
         model: Page,
         url: Config.dbName,
         dbView : 'index',
         comparator : Config.comparator,
-        _firstLoaded : false,
+        //
+        initialize: function(attrs) {
+            attrs = attrs || {};
+            this.dbView = attrs.view || 'index';
+
+            _.bindAll(this, 'refresh');
+
+            if(attrs.fetch) {
+                this.fetch({success: attrs.callback});
+            }
+        },
+        //
+        refresh: function(view, callback) {
+            if(typeof view=='function') {
+                callback = view;
+                view = undefined;
+            }
+
+            this.dbView = view || this.dbView;
+
+            this.fetch({
+                success: function(c) {
+                    if(typeof callback=='function') {
+                        callback(c);
+                    }
+                },
+                force: true // force refresh from server
+            })
+            
+        },
         //
         sync: function(method, collection, options) {
             // Only implements "read"! Overridden because collection accesses
             // CouchDB view running on port 5894 which Backbone assumes won't
             // work by default and so doesn't support (and it won't work,
             // without CORS.)
+            
             if(method!='read') {
                 options.error("Illegal operation on collection.sync "+method);
                 return false;
             }
 
-            Blog.viewDB(collection.dbView, function(indexData) {
+            Blog.viewDB(collection.dbView, options.force, function(indexData) {
 
-                options.success(indexData.rows.map(function(row) {
+                options.success(
+                    indexData.rows.map(function(row) {
                     // Add retrieved indexes to collection, with slight
                     // addendums to the retrieved object.
                     // Note: this view doesn't load full text of any pages,
@@ -43,15 +73,9 @@ function(Config, $, Backbone, Page, Router) {
                         cleanCategories: categories.map(Blog.wp.cleanPostTitle),
                         template: 'post'
                     });
-
                     return rowData;
-                }));
-
-                if(!collection._firstLoaded) {
-                    // Start router now that index is loaded
-                    Blog.router = new Router;
-                    collection._firstLoaded = true;
-                }
+                }),
+                    collection);
             });
         }
     });

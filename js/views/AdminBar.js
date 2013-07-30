@@ -61,6 +61,9 @@ function(Config, Login, $, Backbone) {
         },
         //
         remove: function() {
+            // Reset the pages
+
+            // Standard View.remove() stuff
             Backbone.View.prototype.remove.apply(this, arguments);
             _.each(this.children, function(v){ v.remove(); });
         }

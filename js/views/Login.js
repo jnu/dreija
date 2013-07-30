@@ -12,9 +12,14 @@ function(Config, $, Backbone) {
         loginCallback: function(){},
         cancelCallback: function(){},
         //
+        _rendered : false,
+        //
         initialize : function(attrs) {
+            var that = this;
+
             _.bindAll(this,
-                'render', 'loginHandler', 'destroy', 'setError', 'noError');
+                'render', 'loginHandler', 'loginSuccess',
+                'destroy', 'setError', 'noError');
 
             if(attrs.onLogin) {
                 this.loginCallback = attrs.onLogin;
@@ -23,7 +28,16 @@ function(Config, $, Backbone) {
                 this.cancelCallback = attrs.noLogin;
             }
 
-            this.render();
+            Blog.checkAuth({
+                success: function(userCtx) {
+                    // Currently logged in: execute loginHandler
+                    that.loginSuccess(userCtx.name, true);
+                },
+                error: function(d) {
+                    // Not currently logged in
+                    that.render();
+                }
+            });
         },
         //
         loginHandler : function() {
@@ -36,21 +50,34 @@ function(Config, $, Backbone) {
             Blog.auth(username, password, {
                 success: function() {
                     // Fire logged-in event
-                    $('body').trigger('login', {
-                        type: 'login',
-                        name: username
-                    });
-
-                    // Return
-                    that.loginCallback(username);
-                    that.$el.find('.modal').modal('hide');
-                    that.$el.remove();
-                    that.remove();
+                    that.loginSuccess(username);
                 },
                 fail : function(r, user) {
                     that.setError("Can't log in: "+ r.statusText);
                 }
             })
+        },
+        //
+        loginSuccess : function(username, continuation) {
+            if(!continuation) {
+                // Continuation means that the login was verified from
+                // a cookie rather than being verified with a username and 
+                // password verified by the server.
+                // Don't fire new login events when verifying with a cookie.
+                $('body').trigger('login', {
+                    type: 'login',
+                    name: username
+                });
+            }
+
+            // Return
+            this.loginCallback(username);
+
+            if(this._rendered) {
+                this.$el.find('.modal').modal('hide');
+                this.$el.remove();
+            }
+            this.remove();
         },
         //
         destroy : function() {
@@ -90,6 +117,7 @@ function(Config, $, Backbone) {
                 show: true
             });
 
+            this._rendered = true;
             this.trigger('rendered');
 
             return this;

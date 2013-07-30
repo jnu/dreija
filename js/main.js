@@ -41,12 +41,6 @@ require([
 ],
 
 function(Blog) {
-    // Stylesheet loader (async as well)
-    window.loader.loadFiles([
-        '/styles/bootstrap.css',
-        '/styles/blog.css'
-    ]);
-
     // Start Blog
     window.Blog = Blog.init();
 });

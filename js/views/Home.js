@@ -27,7 +27,17 @@ function(Config, $, Backbone, Index) {
 
             var content = Blog.render('home', {
                 latest: this.collection.sortBy(function(p) {
-                    return p.get('date').valueOf();
+                    
+                    var date = (p.get('date') 
+                        ||
+                        (p.get('created')? new Date(p.get('created')) : null));
+
+                    if(date) {
+                        return p.get('date').valueOf();
+                    }else{
+                        return 0;
+                    }
+
                 }).reverse().slice(0, 2).map(function(p){
                     p.set('link', Blog.wp.createPermalink(p, 'post'));
                     return p;

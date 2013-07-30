@@ -1,30 +1,32 @@
 define([
     'jquery',
     'backbone',
+    'collections/Pages',
     'views/Home',
     'views/Page',
     'views/AdminBar',
+    'views/Drafts',
     'views/EditPage',
     'views/Settings',
     'views/NotFound',
     'config'
 ],
-function($, Backbone,
-    Home, Page, AdminBar, EditPage, Settings, NotFound, Config) {
+function($, Backbone, Pages,
+    Home, Page, AdminBar, Drafts, EditPage, Settings, NotFound, Config) {
    
-   var r = Backbone.Router.extend({
+    var r = Backbone.Router.extend({
         initialize : function(attr) {
             var router = this,
                 //
                 routingTable = [
                 // Opposite order of regular "routes" key: generic -> specific
-                [ "*page",                            "getPostByID"  ],
-                [ "_admin/*page",                     "adminStuff"   ],
-                [ "_admin/_editPage/:id",             "adminEditPage"],
-                [ /([0-9]{4})\/([0-9]{1,2})\/(.*)/,   "wpRoute"      ],
-                [ "posts/:id",                        "getPostByID"  ],
-                [ "category/*category",               "listCategory" ],
-                [ "",                                 "getHomePage"  ],
+                [ "*page",                            "getPostByID"    ],
+                [ "_admin/*page",                     "adminStuff"     ],
+                [ "_admin/_editPage/:id",             "adminEditStuff" ],
+                [ /([0-9]{4})\/([0-9]{1,2})\/(.*)/,   "wpRoute"        ],
+                [ "posts/:id",                        "getPostByID"    ],
+                [ "category/*category",               "listCategory"   ],
+                [ "",                                 "getHomePage"    ],
             ];
             //
             // Apply each route from routing table. This roundabout approach is
@@ -43,7 +45,25 @@ function($, Backbone,
         // 
         // Actions
         //
-        adminStuff : function(page) {
+        adminStuff : function(page, dir) {
+            var that = this;
+
+            Blog.pages.refresh('all', function(c) {
+                Blog.pages = c;
+
+                if(dir=='edit') {
+                    that.adminEditPage(page);
+                }else{
+                    that._routeAdminReq(page);
+                }
+            });
+        },
+        //
+        adminEditStuff : function(id) {
+            this.adminStuff(id, 'edit');
+        },
+        //
+        _routeAdminReq : function(page) {
             page = page || "";
 
             if(!Blog.blogview.childViews.adminBar) {
@@ -57,6 +77,12 @@ function($, Backbone,
                     Blog.blogview.setPageView(np);
                     np.render();
                     Blog.blogview.childViews.adminBar.setActive('newPost');
+                    break;
+                case "_drafts":
+                    var dv = new Drafts({collection: Blog.pages.clone()});
+                    Blog.blogview.setPageView(dv);
+                    dv.render();
+                    Blog.blogview.childViews.adminBar.setActive('drafts');
                     break;
                 case "_settings":
                     var sv = new Settings;
@@ -107,7 +133,7 @@ function($, Backbone,
         //
         getHomePage : function() {
             var hp = new Home({
-                collection: Blog.pages
+                collection: Blog.pages.clone()
             });
 
             Blog.blogview.setPageView(hp);
@@ -142,7 +168,7 @@ function($, Backbone,
             // like index, but only with given category
             category = category.replace(/^\/+/, '').replace(/\/+$/, '');
 
-            var subset = Blog.pages.filter(function(p){
+            var subset = Blog.pages.clone().filter(function(p){
                 return p.get('cleanCategories').join('/') == category;
             }),
                 c = new Backbone.Collection(subset),
@@ -190,9 +216,18 @@ function($, Backbone,
             title = title.replace(/\/$/, '');
 
             var rp = Blog.pages.filter(function(p) {
-                return p.get('date').getFullYear() == year
-                    && (p.get('date').getMonth()+1) == month
-                    && (p.get('cleanTitle')==title || p.get('oldUrl')==title);
+                var date = (p.get('date')
+                    ||
+                    (p.get('created')? new Date(p.get('created')) : null));
+
+                if(date
+                    && date.getFullYear() == year
+                    && (date.getMonth()+1) == month
+                    && (p.get('cleanTitle')==title || p.get('oldUrl')==title))
+                {
+                    return true;
+                }
+                return false;
             });
 
             if(rp.length) {

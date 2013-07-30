@@ -59,6 +59,10 @@ function(Config, $, Page, Login, Alert, Backbone) {
                         text: 'Error saving model: '+ msg
                     }));
                 }else{
+                    // refresh pages collection
+                    Blog.pages.fetch();
+
+                    // Make an alert
                     that.children.push(new Alert({
                         title: "Success!",
                         type: "success",

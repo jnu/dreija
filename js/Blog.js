@@ -5,9 +5,10 @@ define([
     'blogmachine',
     'config',
     'views/BlogView',
-    'collections/Pages'
+    'collections/Pages',
+    'router'
 ],
-function($, _, Backbone, BlogMachine, Config, BlogView, Pages) {
+function($, _, Backbone, BlogMachine, Config, BlogView, Pages, Router) {
 
     if(BlogMachine.init===undefined) {
         BlogMachine.init = function() {
@@ -26,7 +27,12 @@ function($, _, Backbone, BlogMachine, Config, BlogView, Pages) {
                 // Make collection for posts and fetch index of them
                 // from the server.
                 that.pages = new Pages;
-                that.pages.fetch();
+                that.pages.fetch({
+                    success: function(){
+                        // Start router now that index is loaded
+                        BlogMachine.router = new Router;
+                    }
+                });
             });
 
             return this;

@@ -30,7 +30,7 @@
                 var _tpl;
 
                 $.ajax({
-                    url: this.vars.tplDir + '/' + tplName + '-tpl.html',
+                    url: this.vars.tplDir + '/'+ tplName +'-tpl.html',
                     method: 'GET',
                     async: false,
                     dataType: 'html',
@@ -46,6 +46,38 @@
 
             // Fill out template with given data and return
             return this.cache.templates[tplName](tplData);
+        },
+        //
+        checkAuth : function(opts) {
+            // Check whether user is currently logged in. Executes callback
+            // opts.success with response.userCtx object, which contains
+            // response.userCtx.name and response.userCtx.roles.
+            opts = opts || {};
+
+            $.ajax({
+                url: this.vars.dbHost + '/_session',
+                method: 'GET',
+                dataType: 'json',
+                async: true,
+                success: function(data) {
+                    if(data.ok
+                        && data.userCtx
+                        && _.contains(data.userCtx.roles, '_admin')) {
+                        if(typeof opts.success=='function') {
+                            opts.success(data.userCtx);
+                        }
+                    }else{
+                        if(typeof opts.error=='function') {
+                            opts.error(data);
+                        }
+                    }
+                },
+                error: function(data) {
+                    if(typeof opts.error=='function') {
+                        opts.error(data);
+                    }
+                }
+            });
         },
         //
         auth : function(username, password, opts) {
@@ -239,15 +271,19 @@
         wp : {
             // WordPress-esque permalink wranglers
             createPermalink : function(post, type) {
-                var link = '/';
+                var link = '/',
+                    date = (post.get('date')
+                        || 
+                        (post.get('created')?
+                            new Date(post.get('created')) : null));
 
-                if(type==='post') {
-                    link += post.get('date').getFullYear() + '/'
-                         +  (post.get('date').getMonth()+1) + '/'
+                if(type==='post' && date) {
+                    link += date.getFullYear() + '/'
+                         +  (date.getMonth()+1) + '/'
                          +  post.get('cleanTitle');
-                }else if(post.type==='category') {
+                }else if(post.type==='category' || (type==='post' && !date)) {
                     if((post.cleanCategories||[]).length) {
-                        link += "category/" + post.cleanCategories.join('/') + '/';
+                        link += "category/"+post.cleanCategories.join('/')+'/';
                     }
                 }
 
@@ -255,9 +291,9 @@
             },
             //
             cleanPostTitle : function(title) {
-                // Make title into a url-friendly string in the style used by WP
+                // Make title into a url-friendly string a la WP
                 // Todo - test function, make sure it works in all cases
-                return title.toLowerCase()
+                return (title||"").toLowerCase()
                             .replace(/<.*?>/g, '')
                             .replace(/[^\w\d\s]/g, '')
                             .replace(/\s+/g, '-');
@@ -272,7 +308,9 @@
 
             this.formats = {
                 abc : function(n) {
-                    if(n>26 || n<1) throw new that.Error(n+" is out of format range.");
+                    if(n>26 || n<1) {
+                        throw new that.Error(n+" is out of format range.");
+                    }
                     return String.fromCharCode(96+n);
                 },
 
@@ -304,7 +342,9 @@
 
                 dotSub : function(n, depth, counters) {
                     // Eg. 1.2 or 3.4. Uses previous level's counter
-                    if(depth<1) throw new that.Error("Can't dot-sub first level");
+                    if(depth<1) {
+                        throw new that.Error("Can't dot-sub first level");
+                    }
                     return counters[depth-1] +"."+ n;
                 }
             }
@@ -329,7 +369,8 @@
             // Intercept click events on links pointing to local paths and use
             // HTML5 pushState via Backbone router.
             // Call with `this` as the Backbone router
-            // >> Function thanks to Gilbert Reimschüssel (http://bit.ly/16kP06e)
+            // >> Function thanks to Gilbert Reimschüssel
+            // >> (http://bit.ly/16kP06e)
             var router = this;
 
             function _linkHandler(e, back) {
@@ -338,7 +379,7 @@
                     // Function that redirects click action to Backbone router
                     e.preventDefault();
 
-                    // Remove shebanged URLs, though hopefully there won't be any
+                    // Remove shebanged URLs (hopefully there won't be any)
                     var url = href.replace(/^\//, '').replace('\#\!\/', '');
 
                     // Trigger Backbone routing event
@@ -346,14 +387,14 @@
                 }
 
                 // Determine whether interceptor should be used:
-                // Set passThrough to true in cases where clicks should use default
-                // behavior.
+                // Set passThrough to true in cases where clicks should use
+                // default behavior.
 
                 var href = back? window.location.path
                                : $(e.currentTarget).attr('href'),
                     passThrough = false,
                     tests = [
-                    /^\/\/[\w]/,    // Links omitting http / https but are external
+                    /^\/\/[\w]/,    // Links omitting http(s), but are external
                     /^\/static\//,  // static content on server
                     /^\/sandbox\//, // real pages on the server
                     ];
@@ -363,7 +404,8 @@
                     if(passThrough) break;
                 }
 
-                if(!passThrough && !e.altKey&&!e.ctrlKey&&!e.MetaKey&&!e.shiftKey){
+                if(!passThrough
+                    && !e.altKey && !e.ctrlKey && !e.MetaKey && !e.shiftKey) {
                     // Animation
                     $.scrollTo(0, {
                         duration: 300,

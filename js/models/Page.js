@@ -6,19 +6,36 @@ function($, Backbone) {
 
     var m = Backbone.Model.extend({
         sync : function(method, model, options) {
-            // Only implements "read" method! Aliases 'update' to identity.
-            if(model.id===null) {
-                options.error("Need to pass ID to fetch; got null.");
-                return false;
-            }
-
             switch(method) {
                 case 'update':
-                    options.success(model.attributes);
+                    Blog.putToDB(model.id, model.toJSON(),
+                        function(data) {
+                            if(data.ok) {
+                                model.set('_rev', data.rev),
+                                model.set('_id', data.id)
+                            }
+                            options.success(data);
+                        });
+                    break;
+
+                case 'create':
+                    Blog.putToDB(model.id, model.toJSON(), 
+                        function(data) {
+                            if(data.ok) {
+                                model.set('_rev', data.rev);
+                                model.set('_id', data.id);
+                            }
+
+                            options.success(data);
+                        });
+                    break;
+
+                case 'delete':
+                    Blog.deleteFromDB(model.id, options.success);
                     break;
 
                 case 'read':
-                    Blog.queryDB(model.id,
+                    Blog.getFromDB(model.id,
                                  model.attributes.force||false,
                                  function(data) {
                         options.success(data); 
@@ -27,7 +44,7 @@ function($, Backbone) {
                     break;
 
                 default:
-                    options.error("Illegal operation on model.sync: "+model);
+                    options.error("Illegal operation on model.sync: "+ model);
                     return false;
             }
         },
