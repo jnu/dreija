@@ -60,7 +60,7 @@ function(Config, $, Page, Login, Alert, Backbone) {
                     }));
                 }else{
                     // refresh pages collection
-                    Blog.pages.fetch();
+                    Blog.pages.refresh();
 
                     // Make an alert
                     that.children.push(new Alert({

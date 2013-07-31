@@ -14,19 +14,31 @@ function(Config, $, Backbone) {
             created: 'Unknown',
             category: 'Uncategorized',
             id: -1,
-            title: "Untitled"
+            title: "Untitled",
         },
+        header: false,
         //
         initialize : function(attrs) {
             _.bindAll(this, 'render');
+
+            this.header = attrs.header;
 
             this.render();
         },
         //
         render: function() {
             var that=this,
-                newEntry = Blog.render('bareIndexLine',
-                    $.extend({}, this.defaults, this.model.toJSON()));
+                newEntry,
+                _m = $.extend({
+                        "__header__" : this.header? true : false
+                    }, this.defaults, this.model.toJSON());
+
+            // Patch model with defaults
+            if(!_m.title || !_m.title.length) {
+                _m.title = this.defaults.title;
+            }
+
+            newEntry = Blog.render('bareIndexLine', _m);
 
             this.$el.html(newEntry);
 

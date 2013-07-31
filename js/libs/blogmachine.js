@@ -1,3 +1,4 @@
+;
 /**
  * blogmachine.js
  *
@@ -145,8 +146,9 @@
             return this.queryDB(id, 'GET', force, {}, callback);
         },
         //
-        deleteFromDB : function(id, callback) {
-            return this.queryDB(id, 'DELETE', true, {}, callback);
+        deleteFromDB : function(id, data, callback) {
+            data['_deleted'] = true;
+            return this.putToDB(id, data, callback);
         },
         //
         queryDB : function() {

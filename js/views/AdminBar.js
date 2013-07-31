@@ -62,6 +62,9 @@ function(Config, Login, $, Backbone) {
         //
         remove: function() {
             // Reset the pages
+            Blog.pages.refresh('index', function(){
+                Blog.router.navigate('/');
+            });
 
             // Standard View.remove() stuff
             Backbone.View.prototype.remove.apply(this, arguments);

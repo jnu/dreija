@@ -1,3 +1,4 @@
+;
 define([
     'jquery',
     'backbone',
@@ -9,10 +10,12 @@ define([
     'views/EditPage',
     'views/Settings',
     'views/NotFound',
+    'views/Alert',
     'config'
 ],
-function($, Backbone, Pages,
-    Home, Page, AdminBar, Drafts, EditPage, Settings, NotFound, Config) {
+function($, Backbone, Pages, Home, Page,
+    AdminBar, Drafts, EditPage, Settings,
+    NotFound, Alert, Config) {
    
     var r = Backbone.Router.extend({
         initialize : function(attr) {
@@ -20,13 +23,14 @@ function($, Backbone, Pages,
                 //
                 routingTable = [
                 // Opposite order of regular "routes" key: generic -> specific
-                [ "*page",                            "getPostByID"    ],
-                [ "_admin/*page",                     "adminStuff"     ],
-                [ "_admin/_editPage/:id",             "adminEditStuff" ],
-                [ /([0-9]{4})\/([0-9]{1,2})\/(.*)/,   "wpRoute"        ],
-                [ "posts/:id",                        "getPostByID"    ],
-                [ "category/*category",               "listCategory"   ],
-                [ "",                                 "getHomePage"    ],
+                [ "*page",                           "getPostByID"      ],
+                [ "_admin/*page",                    "adminStuff"       ],
+                [ "_admin/_editPage/:id",            "adminEditStuff"   ],
+                [ "_admin/_deletePage/:id",          "adminDeleteStuff" ],
+                [ /([0-9]{4})\/([0-9]{1,2})\/(.*)/,  "wpRoute"          ],
+                [ "posts/:id",                       "getPostByID"      ],
+                [ "category/*category",              "listCategory"     ],
+                [ "",                                "getHomePage"      ],
             ];
             //
             // Apply each route from routing table. This roundabout approach is
@@ -48,11 +52,18 @@ function($, Backbone, Pages,
         adminStuff : function(page, dir) {
             var that = this;
 
+            if(!Blog.blogview.childViews.adminBar) {
+                Blog.blogview.childViews.adminBar = new AdminBar;
+            }
+            Blog.blogview.childViews.adminBar.toggleEditButton(false);
+
             Blog.pages.refresh('all', function(c) {
                 Blog.pages = c;
 
                 if(dir=='edit') {
                     that.adminEditPage(page);
+                }else if(dir=='delete') {
+                    that.adminDeletePage(page);
                 }else{
                     that._routeAdminReq(page);
                 }
@@ -63,13 +74,12 @@ function($, Backbone, Pages,
             this.adminStuff(id, 'edit');
         },
         //
+        adminDeleteStuff : function(id) {
+            this.adminStuff(id, 'delete');
+        },
+        //
         _routeAdminReq : function(page) {
             page = page || "";
-
-            if(!Blog.blogview.childViews.adminBar) {
-                Blog.blogview.childViews.adminBar = new AdminBar;
-            }
-            Blog.blogview.childViews.adminBar.toggleEditButton(false);
 
             switch(page) {
                 case "_newPost":
@@ -99,9 +109,6 @@ function($, Backbone, Pages,
         },
         //
         adminEditPage : function(id) {
-            if(!Blog.blogview.childViews.adminBar) {
-                Blog.blogview.childViews.adminBar = new AdminBar;
-            }
             var m = Blog.pages.get(id, {});
 
             m.fetch({
@@ -110,6 +117,59 @@ function($, Backbone, Pages,
 
                     Blog.blogview.setPageView(ep);
                     ep.render();
+                }
+            });
+        },
+        //
+        adminDeletePage : function(id) {
+            // Confirm deletion first
+            var that = this,
+                m = Blog.pages.get(id, {});
+
+            m.fetch({
+                success: function() {
+                    var _confirm = new Alert({
+                        type: 'confirm',
+                        title: "Really?",
+                        text: "Do you really want to delete post `"+ id +"`?",
+                        ok: function(first) {
+                            if(first!==true) { return; }
+
+                            Blog.deleteFromDB(id, m.toJSON(), function(r) {
+                                if(r.status>=300) {
+                                    // Error
+                                    var _err = new Alert({
+                                        type: 'error',
+                                        title: 'Error',
+                                        text: "Couldn't delete: "+r.statusText,
+                                        ok: function() {
+                                            that.navigate('/_admin/_drafts',
+                                                {trigger:true});
+                                        }
+                                    });
+                                }else{
+                                    // Success
+                                    var _ok = new Alert({
+                                        type: 'info',
+                                        title: 'Deleted',
+                                        text: "Post deleted.",
+                                        ok: function() {
+                                            Blog.pages.refresh(function() {
+                                                that.navigate('/_admin/_drafts',
+                                                    {
+                                                        trigger:true
+                                                    });
+                                            });
+                                        }
+                                    });
+                                }
+                            });
+                        },
+                        cancel: function() {
+                            that.navigate('/_admin/_drafts',
+                                {trigger:true});
+                        }
+                    });
                 }
             });
         },

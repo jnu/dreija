@@ -1,8 +1,35 @@
-<div class="row-fluid">
-<div class="span2"><a href="/_admin/_editPage/<%= id %>"><%= title %></a></div>
-<div class="span2"><%= type %></div>
-<div class="span2"><%= category %></div>
-<div class="span2"><%= created %></div>
-<div class="span2"><%= author %></div>
-<div class="span1">[delete]</div>
-</div>
+<tr>
+<% if(__header__) { %>
+
+    <th>Title</th>
+    <th>Type</th>
+    <th>Category</th>
+    <th>Date Created</th>
+    <th>Author</th>
+    <th>Status</th>
+    <th></th>
+
+<% }else{ %>
+
+
+    <td>
+        <a href="/_admin/_editPage/<%= id %>" title="edit post">
+            <%= title %>
+        </a>
+    </td>
+    <td><%= type %></td>
+    <td><%= category %></td>
+    <td><%= created %></td>
+    <td><%= author %></td>
+    <td><%= status %></td>
+    <td>
+        <a href="/_admin/_deletePage/<%= id %>" title="delete post" id="trash">
+            <i class="icon-trash"></i>
+        </a>
+    </td>
+
+
+
+<% } %>
+
+</tr>

@@ -1,3 +1,4 @@
+;
 define([
     'config',
     'jquery',
@@ -10,7 +11,9 @@ function(Config, $, Backbone) {
         attributes: {
             type: 'error',
             title: 'Alert',
-            text: 'Something went wrong!'
+            text: 'Something went wrong!',
+            ok: function(){},
+            cancel: function(){}
         },
         //
         initialize : function(attrs) {
@@ -39,6 +42,20 @@ function(Config, $, Backbone) {
             
             this.$el.appendTo('body');
             this.$el.find('.exiter').click(this.destroy);
+
+            this.$el.find('#ok').click(function(e){
+                that.attributes.ok(true);
+                that.destroy();
+                return false;
+            });
+
+            if(this.attributes.type=='confirm') {
+                this.$el.find('#cancel').click(function(e) {
+                    that.attributes.cancel(e);
+                    that.destroy();
+                    return false;
+                });
+            }
 
             this.$el.find('.modal').modal('show');
 

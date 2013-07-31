@@ -24,10 +24,16 @@ function(Config, $, IndexLine, Backbone) {
         render: function() {
             var that = this,
                 newPage = Blog.render('drafts', {
+                    header : (function(){
+                        var h = new IndexLine({
+                            model: that.collection.first(),
+                            header: true
+                        });
+                        that.children.push(h);
+                        return h.el.innerHTML;
+                    })(),
                     entries: this.collection
-                        .filter(function(m) {
-                            return m.get('status')!='published';
-                        })
+                        .sort()
                         .map(function(m) {
                             var t = new IndexLine({model: m});
                             that.children.push(t);
