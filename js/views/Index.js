@@ -45,7 +45,12 @@ function(Config, $, Backbone, IndexLine) {
                     cats = (currentPost.get('categories') || []),
                     collection = null,
                     j = 0,
-                    path = '';
+                    path = '',
+                    date = currentPost.get('date', new Date);
+
+                if(!(date instanceof Date)) {
+                    date = new Date(date);
+                }
 
                 if(currentPost.get('type')=='page') {
                     // Intercept pages: they don't get categorized
@@ -54,7 +59,7 @@ function(Config, $, Backbone, IndexLine) {
                     var pfx = "Appendix "+ String.fromCharCode(64+(++pageCtr)),
                         newPageILV = new IndexLine({
                         properties: {
-                            date: currentPost.get('date', new Date),
+                            date: date,
                             model: currentPost,
                             numId: ''+i+j+i,
                             fNum: _formatter(counters, j),
@@ -80,13 +85,19 @@ function(Config, $, Backbone, IndexLine) {
                         // Make path
                         path += '/' + cleanCats[j];
 
+                        // Date
+                        var date = currentPost.get('date', new Date);
+                        if(!(date instanceof Date)) {
+                            date = new Date(date);
+                        }
+
                         // Increment counter for categories
                         _increment(j);
 
                         // Add new category IndexLine
                         var newCategoryILV = new IndexLine({
                             properties: {
-                                date: currentPost.get('date', new Date),
+                                date: date,
                                 model: currentPost,
                                 numId: '' + (j+1) + i,
                                 fNum: _formatter(counters, j),
@@ -110,6 +121,11 @@ function(Config, $, Backbone, IndexLine) {
                 _increment(j);
 
                 // Add a new IndexLine for the current post
+                var date = currentPost.get('date', new Date);
+                if(!(date instanceof Date)) {
+                    date = new Date(date);
+                }
+
                 var newPostILV = new IndexLine({
                     properties: {
                         model: currentPost,
@@ -117,7 +133,7 @@ function(Config, $, Backbone, IndexLine) {
                         fNum: _formatter(counters, j),
                         hDepth : cats.length + 3,
                         link : Blog.wp.createPermalink(currentPost, 'post'),
-                        date : currentPost.get('date', new Date),
+                        date : date,
                         title : currentPost.get('title'),
                         sprite: currentPost.get('sprite'),
                         type: 'post'

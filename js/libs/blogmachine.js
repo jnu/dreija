@@ -280,6 +280,10 @@
                             new Date(post.get('created')) : null));
 
                 if(type==='post' && date) {
+                    if(!(date instanceof Date)) {
+                        date = new Date(date);
+                    }
+
                     link += date.getFullYear() + '/'
                          +  (date.getMonth()+1) + '/'
                          +  post.get('cleanTitle');

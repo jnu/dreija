@@ -1,0 +1,28 @@
+{
+  "name": "blogmachine",
+  "version": "0.1.0",
+  "description": "Lightweight JS blogging engine for joenoodles.com",
+  "main": "index.html",
+  "scripts": {
+    "test": "mocha -R landing js/test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/jnu/blogmachine.git"
+  },
+  "keywords": [
+    "blog",
+    "engine",
+    "backbone",
+    "javascript",
+    "client-side"
+  ],
+  "author": "Joe Nudell",
+  "license": "BSD",
+  "readmeFilename": "README.md",
+  "gitHead": "bbaed914045742b1d99729f546a5a11059e6fb91",
+  "devDependencies": {
+    "grunt": "~0.4.1",
+    "grunt-contrib-requirejs": "~0.4.1"
+  }
+}
