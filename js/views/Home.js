@@ -35,7 +35,7 @@ function(Config, $, Backbone, Index) {
                     if(date) {
                         return p.get('date').valueOf();
                     }else{
-                        return 0;
+                        return new Date;
                     }
 
                 }).reverse().slice(0, 2).map(function(p){

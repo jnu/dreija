@@ -1,4 +1,5 @@
 <div class="row-fluid">
+
     <div class="row-fluid text-center head-space" id="target-latest">
         <div class="span12">
             <h2 id="latest">Latest</h2>
@@ -8,24 +9,28 @@
 
     <div class="row-fluid head-space">
         <div class="span4 offset4">
-            <% if(latest.length>0) { %>
+            <% if((latest||[]).length) { %>
                 <p>
                     My most recent post is
-                    <a href="<% print(latest[0].link); %>">
-                        <% print(latest[0].title); %>
+                    <a href="<% print(latest[0].get('link')); %>">
+                        <% print(latest[0].get('title')); %>
                     </a>,
-                    which I wrote <% print(latest[0].whichiwrote); %>. 
-                    (<% print(latest[0].date.format('mmm d')); %>)
+                    which I wrote <% print(latest[0].get('whichiwrote')); %>.
+                    <% if(latest[0].get('date') instanceof Date) { %>
+                        (<% print(latest[0].get('date').format('mmm d')); %>)
+                    <% } %>
                 </p>
             <% } %>
 
-            <% if(latest.length>1) { %>
+            <% if((latest||[]).length>1) { %>
                 <p>
                     Before that I wrote
-                    <a href="<% print(latest[1].link); %>">
-                        <% print(latest[1].title); %>
+                    <a href="<% print(latest[1].get('link')); %>">
+                        <% print(latest[1].get('title')); %>
                     </a>.
-                    (<% print(latest[1].date.format('mmm d')); %>)
+                    <% if(latest[1].get('date') instanceof Date) { %>
+                        (<% print(latest[1].get('date').format('mmm d')); %>)
+                    <% } %>
                 </p>
             <% } %>
 
@@ -39,15 +44,15 @@
         <div class="span12">
             <h2 id="blog-index">Contents</h2>
             <!-- Breadcrumbs -->
-            <% if(typeof categories!=='undefined' && categories.length) { %>
+            <% if((categories||[]).length) { %>
                 <h4><a href="/">home</a>
-                <% var max=categories.length-1, path="/category/";
-                categories.forEach(function(cat, i) { path+=cat; %>
+                <% var max=categories.length-1, path="/category";
+                categories.forEach(function(cat, i) { path+='/'+cat.clean; %>
                 &gt;
                 <% if(i<max) { %>
-                    <a href="<%= path %>"><%= cat %></a>
+                    <a href="<%= path %>"><%= cat.name %></a>
                 <% }else{ %>
-                    <span><%= cat %></span>
+                    <span><%= cat.name %></span>
                 <% }
                 }); %>
                 </h4>
@@ -57,37 +62,15 @@
         </div>
     </div>
 
+
+
     <div class="row-fluid head-space">
         <div class="span8 offset4">
-        <% _.forEach(posts, function(post, i) { %>
-            <div class="indexline">
-                <div class="index h<% print(post.depth+3); %>">
-                    <div class="numeral <%= i %>">
-                        <div class="indenum" style="display: block;">
-                            <% print(post.fnum); %>.
-                        </div>
-                        <div class="sprite icon indecon"
-                             style="display: none;
-                                    background-position:
-                                        <% print(post.sprite); %>">
-                         </div>
-                    </div>
-                    <div class="title">
-                        <a href="<% print(post.link); %>" class="<%= i %>">
-                            <% print(post.title); %></a>
-                        <% if(post.date) { %>
-                            <span class="date">
-        (<span class="value"><% print(post.date.format('mmm d, yy')); %></span>)
-                            </span>
-                        <% } %>
-                    </div>
-                </div>
-            </div>
-        <% }); %>
+            <div id="index-cont"></div>
         </div>
     </div>
-</div>
 
+</div>
 
 <script type="text/javascript">
 $('div.title>a').mouseover(function() {

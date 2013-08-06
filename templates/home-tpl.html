@@ -15,8 +15,10 @@
                     <a href="<% print(latest[0].get('link')); %>">
                         <% print(latest[0].get('title')); %>
                     </a>,
-                    which I wrote <% print(latest[0].get('whichiwrote')); %>. 
-                    (<% print(latest[0].get('date').format('mmm d')); %>)
+                    which I wrote <% print(latest[0].get('whichiwrote')); %>.
+                    <% if(latest[0].get('date') instanceof Date) { %>
+                        (<% print(latest[0].get('date').format('mmm d')); %>)
+                    <% } %>
                 </p>
             <% } %>
 
@@ -26,7 +28,9 @@
                     <a href="<% print(latest[1].get('link')); %>">
                         <% print(latest[1].get('title')); %>
                     </a>.
-                    (<% print(latest[1].get('date').format('mmm d')); %>)
+                    <% if(latest[1].get('date') instanceof Date) { %>
+                        (<% print(latest[1].get('date').format('mmm d')); %>)
+                    <% } %>
                 </p>
             <% } %>
 
