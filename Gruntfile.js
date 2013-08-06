@@ -1,13 +1,17 @@
 module.exports = function(grunt) {
     // project config
     grunt.initConfig({
+        // variables
         pkg: grunt.file.readJSON('package.json'),
+        vars: {
+            buildpath: '../<%= pkg.name %>-build'
+        },
         //
         clean: {
             options: {
                 force: true
             },
-            build: ['../newblog-build']
+            build: ['<%= vars.buildpath %>']
         },
         //
         requirejs: {
@@ -15,7 +19,7 @@ module.exports = function(grunt) {
                 options: {
                     baseUrl: "js",
                     mainConfigFile: "js/main.js",
-                    out: "../newblog-build/js/main.js",
+                    out: "<%= vars.buildpath %>/js/main.js",
                     name: "main"
                 }
             }
@@ -24,10 +28,10 @@ module.exports = function(grunt) {
         copy: {
             main: {
                 files: [
-                    {expand: true, src: ['styles/*.png'], dest: "../newblog-build/", filter: 'isFile'},
-                    {expand: true, src: ['img/*.png'], dest: "../newblog-build/", filter: 'isFile'},
-                    {expand: true, src: ['templates/*.html'], dest: "../newblog-build/", filter: 'isFile'},
-                    {expand: true, src: ['js/*.conf]'], dest: "../newblog-build/"}
+                    {expand: true, src: ['styles/*.png'], dest: "<%= vars.buildpath %>/", filter: 'isFile'},
+                    {expand: true, src: ['img/*.png'], dest: "<%= vars.buildpath %>/", filter: 'isFile'},
+                    {expand: true, src: ['templates/*.html'], dest: "<%= vars.buildpath %>/", filter: 'isFile'},
+                    {expand: true, src: ['js/*.conf]'], dest: "<%= vars.buildpath %>/"}
                 ]
             }
         },
@@ -38,12 +42,12 @@ module.exports = function(grunt) {
                     {
                         expand: true,
                         src: 'js/libs/*.js',
-                        dest: '../newblog-build'
+                        dest: '<%= vars.buildpath %>'
                     },
                     {
                         expand: true,
                         src: 'js/ss.js',
-                        dest: '../newblog-build'
+                        dest: '<%= vars.buildpath %>'
                     }
                 ]
             }
@@ -54,7 +58,7 @@ module.exports = function(grunt) {
                 expand: true,
                 cwd: 'styles/',
                 src: ['*.css'],
-                dest: '../newblog-build/styles/',
+                dest: '<%= vars.buildpath %>/styles/',
                 ext: '.css'
             }
         },
@@ -65,9 +69,18 @@ module.exports = function(grunt) {
                     removeComments: true,
                     collapseWhitespace: true
                 },
-                files: {
-                    '../newblog-build/index.html' : 'index.html'
-                }
+                files: [
+                    {
+                        expand: true,
+                        src: 'index.html',
+                        dest: '<%= vars.buildpath %>/'
+                    } /*, htmlmin can't handle parsing templates ATM.
+                    {
+                        expand: true,
+                        src: 'templates/*.html',
+                        dest: '<%= vars.buildpath %>/'
+                    }*/
+                ]
             }
         },
         //
@@ -80,7 +93,7 @@ module.exports = function(grunt) {
             deploy: {
                 options: {
                     host: '54.214.244.77',
-                    src: '../newblog-build/',
+                    src: '<%= vars.buildpath %>/',
                     dest: '/var/www',
                     syncDestIgnoreExcl: true
                 }
