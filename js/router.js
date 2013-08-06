@@ -280,6 +280,10 @@ function($, Backbone, Pages, Home, Page,
                     ||
                     (p.get('created')? new Date(p.get('created')) : null));
 
+                if(!(date instanceof Date)) {
+                    date = new Date(date);
+                }
+
                 if(date
                     && date.getFullYear() == year
                     && (date.getMonth()+1) == month
