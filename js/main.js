@@ -43,6 +43,9 @@ require([
 function(Blog) {
     // Start Blog
     window.Blog = Blog.init();
+
+    // Message for the curious
+    console.log("You can find my uncompressed and commented source here: https://github.com/jnu/blogmachine");
 });
 
 
