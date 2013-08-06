@@ -28,10 +28,29 @@ module.exports = function(grunt) {
         copy: {
             main: {
                 files: [
-                    {expand: true, src: ['styles/*.png'], dest: "<%= vars.buildpath %>/", filter: 'isFile'},
-                    {expand: true, src: ['img/*.png'], dest: "<%= vars.buildpath %>/", filter: 'isFile'},
-                    {expand: true, src: ['templates/*.html'], dest: "<%= vars.buildpath %>/", filter: 'isFile'},
-                    {expand: true, src: ['js/*.conf]'], dest: "<%= vars.buildpath %>/"}
+                    {
+                        expand: true,
+                        src: ['styles/*.png'],
+                        dest: "<%= vars.buildpath %>/",
+                        filter: 'isFile'
+                    },
+                    {
+                        expand: true,
+                        src: ['img/*.png'],
+                        dest: "<%= vars.buildpath %>/",
+                        filter: 'isFile'
+                    },
+                    {
+                        expand: true,
+                        src: ['templates/*.html'],
+                        dest: "<%= vars.buildpath %>/",
+                        filter: 'isFile'
+                    },
+                    {
+                        expand: true,
+                        src: ['js/*.conf]'],
+                        dest: "<%= vars.buildpath %>/"
+                    }
                 ]
             }
         },
@@ -111,11 +130,14 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-rsync');
 
     // default
-    grunt.registerTask('default', ['clean', 'requirejs', 'copy', 'uglify', 'cssmin', 'htmlmin']);
+    grunt.registerTask('default',
+        ['clean', 'requirejs', 'copy', 'uglify', 'cssmin', 'htmlmin']);
 
     // deploy
-    grunt.registerTask('deploy', ['rsync']);
+    grunt.registerTask('deploy',
+        ['rsync']);
 
     // all: build & deploy
-    grunt.registerTask('all', ['default', 'deploy']);
+    grunt.registerTask('all',
+        ['default', 'deploy']);
 }

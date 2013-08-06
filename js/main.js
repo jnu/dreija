@@ -1,6 +1,6 @@
 // Blog bootstrapper
 requirejs.config({
-    baseUrl: '/js',
+    baseUrl: 'js',
     //
     paths: {
         jquery          : 'libs/jquery-2.0.2',
