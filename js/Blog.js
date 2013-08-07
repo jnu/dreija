@@ -31,6 +31,7 @@ function($, _, Backbone, BlogMachine, Config, BlogView, Pages, Router) {
                     success: function(){
                         // Start router now that index is loaded
                         BlogMachine.router = new Router;
+                        that.blogview.trigger('router:on');
                     }
                 });
             });
