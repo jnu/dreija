@@ -413,10 +413,10 @@
                 if(!passThrough
                     && !e.altKey && !e.ctrlKey && !e.MetaKey && !e.shiftKey) {
                     // Animation
-                    $.scrollTo(0, {
+                    /*$.scrollTo(0, {
                         duration: 300,
                         onAfter: function() { _interceptor(href||""); }
-                    });
+                    });*/_interceptor(href||"");
 
                     // Prevent default action
                     return false;
