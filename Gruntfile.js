@@ -4,7 +4,8 @@ module.exports = function(grunt) {
         // variables
         pkg: grunt.file.readJSON('package.json'),
         vars: {
-            buildpath: '../<%= pkg.name %>-build'
+            buildpath: '../<%= pkg.name %>-build',
+            host: '54.214.244.77'
         },
         //
         clean: {
@@ -111,9 +112,17 @@ module.exports = function(grunt) {
             },
             deploy: {
                 options: {
-                    host: '54.214.244.77',
+                    host: '<%= vars.host %>',
                     src: '<%= vars.buildpath %>/',
                     dest: '/var/www',
+                    syncDestIgnoreExcl: true
+                }
+            },
+            stage: {
+                options: {
+                    host: '<%= vars.host %>',
+                    src: '<%= vars.buildpath %>/',
+                    dest: '/var/stage',
                     syncDestIgnoreExcl: true
                 }
             }
@@ -129,15 +138,22 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-htmlmin');
     grunt.loadNpmTasks('grunt-rsync');
 
-    // default
-    grunt.registerTask('default',
+    // build
+    grunt.registerTask('build',
         ['clean', 'requirejs', 'copy', 'uglify', 'cssmin', 'htmlmin']);
 
     // deploy
     grunt.registerTask('deploy',
-        ['rsync']);
+        ['rsync:deploy']);
+
+    // stage
+    grunt.registerTask('stage',
+        ['rsync:stage']);
 
     // all: build & deploy
     grunt.registerTask('all',
         ['default', 'deploy']);
+
+    // Build only by default
+    grunt.registerTask('default', ['build']);
 }
