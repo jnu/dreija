@@ -25,7 +25,8 @@ function(Config, $, Backbone, Index) {
 
             this.children.push(index);
 
-            var content = Blog.render('home', {
+            var tplVariety = 'home',
+                content = Blog.render(tplVariety, {
                 latest: this.collection.sortBy(function(p) {
                     
                     var date = (p.get('date') 

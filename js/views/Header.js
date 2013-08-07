@@ -6,7 +6,7 @@ define([
 function(Config, $, Backbone) {
 
     var v = Backbone.View.extend({
-        id: Config.headerEl,
+        id: Config.headerEl.replace('#',''),
         className: "page-header text-center",
         events: {'click' : 'goHome'},
         //
