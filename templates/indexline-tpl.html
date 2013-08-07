@@ -1,19 +1,37 @@
-<div class="index h<%= hDepth %>">
-    <div class="numeral <%- numId %>">
-        <div class="indenum" style="display: block;">
-            <%= fNum %>.
-        </div>
-        <div class="sprite icon indecon"
-             style="display: none;
-                    background-position: <%= sprite %>">
-         </div>
-    </div>
-    <div class="title">
-        <a href="<%= link %>" class="<%= numId %>"><%= title %></a>
-        <% if(typeof date!='undefined' && type!='cat') { %>
-            <span class="date">
-(<span class="value"><% print(date.format('mmm d, yy')); %></span>)
+<div class="row-fluid">
+    <div class="span12">
+        <h3>
+            <span class="sprite icon"
+                 style="background-position: <%= sprite %>">
             </span>
-        <% } %>
+            <span>
+            <a href="<%= link %>"><%= title %></a>
+            </span>
+        </h3>
     </div>
+</div>
+
+
+<div class="description">
+
+    <div class="row-fluid">
+        <div class="span12">
+    <span class="value"><%= snippet %></span>
+        </div>
+    </div>
+
+    <div class="row-fluid">
+        <div class="span4 category">
+    <span class="value"><%= category %></span>
+        </div>
+
+        <div class="date offset4 span4">
+            <% if(typeof date!='undefined' && type!='cat') { %>
+                <span class="date">
+    <span class="value"><% if(date) { print(date.format('mmm d, yy')); } %></span>
+                </span>
+            <% } %>
+        </div>
+    </div>
+
 </div>
