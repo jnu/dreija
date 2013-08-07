@@ -40,6 +40,14 @@ img#wpstats{ display: none;}
     position: relative;
     left: -5%;
     width: 110%;
+    /* gradient */
+    background: -moz-linear-gradient(top,  rgba(255,246,218,0) 0%, rgba(255,246,218,0.8) 70%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(255,246,218,0)), color-stop(70%,rgba(255,246,218,0.8))); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(top,  rgba(255,246,218,0) 0%,rgba(255,246,218,0.8) 70%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top,  rgba(255,246,218,0) 0%,rgba(255,246,218,0.8) 70%); /* Opera 11.10+ */
+    background: -ms-linear-gradient(top,  rgba(255,246,218,0) 0%,rgba(255,246,218,0.8) 70%); /* IE10+ */
+    background: linear-gradient(to bottom,  rgba(255,246,218,0) 0%,rgba(255,246,218,0.8) 70%); /* W3C */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00fff6da', endColorstr='#ccfff6da',GradientType=0 ); /* IE6-9 */
 }
 
 .head-space{margin:30px 0;}
@@ -86,13 +94,40 @@ div.h5 {
 }
 
 div.site-info {
-    font-size: 8px;
-    color: #aaa;
+    font-size: 12px;
+    color: #333;
+}
+div.site-info a {
+    color: #900;
 }
 
 
-span.date {
+span.value {
     font-size: .7em;
+}
+
+@media (max-width: 979px) {
+    span.value {
+        font-size: 1em;
+    }
+    #sidebar .tab-content {
+        margin: 0 2%;
+    }
+    .foot-img {
+        display: none;
+    }
+    body {
+        padding: 0;
+    }
+}
+@media (max-width: 767px) {
+    body {
+        padding: 0;
+    }
+}
+
+#page-cont {
+    overflow-x: hidden;
 }
 
 
@@ -152,7 +187,6 @@ code {
 
 /* -- Index number / icon sprites --- */
 .indecon {
-    display: none;
     position: absolute;
 }
 
