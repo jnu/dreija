@@ -153,6 +153,10 @@ code {
 .indent4{ margin-left: 40%; }
 .indent5{ margin-left: 50%; }
 
+li.module {
+    padding-right: 1%;
+}
+
 /* Social sprite */
 .social {
     display: inline-block;

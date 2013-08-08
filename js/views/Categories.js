@@ -7,7 +7,8 @@ function(Config, $, Backbone) {
 
     var v = Backbone.View.extend({
         id: 'module', // note -- modules are given UID when attached to SideBar
-        className: "pull-left cleared hidden-phone",
+        tagName: 'li',
+        className: "pull-left cleared hidden-phone module",
         //
         categories: [],
         //
