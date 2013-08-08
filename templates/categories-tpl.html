@@ -1,0 +1,11 @@
+<dl>
+    <dt>Categories</dt>
+
+    <% _.each(categories, function(category) { %>
+        <dd>
+            <span class="indent<%- category.depth %>">
+                <a href="<%- category.link %>"><%- category.label %></a>
+            </span>
+        </dd>
+    <% }); %>
+</dl>
