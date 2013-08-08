@@ -23,13 +23,13 @@ function($, _, Backbone, BlogMachine, Config, BlogView, Pages, Router) {
                 that.cache.spriteMap = metaData;
 
                 that.blogview = new BlogView;
-
                 // Make collection for posts and fetch index of them
                 // from the server.
                 that.pages = new Pages;
                 that.pages.fetch({
                     success: function(){
                         // Start router now that index is loaded
+                        //that.blogview.renderStatic();
                         BlogMachine.router = new Router;
                         that.blogview.trigger('router:on');
                     }
