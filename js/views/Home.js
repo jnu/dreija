@@ -58,7 +58,7 @@ function(Config, $, Backbone, Index) {
             Backbone.View.prototype.remove.apply(this, arguments);
             _.each(this.children, function(v){ v.remove(); });
         }
-    });
+    }, {type: 'Home'});
 
     return v;
 });

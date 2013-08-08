@@ -64,29 +64,55 @@ function($, Backbone, Header, Footer, SideBar, Categories) {
             var that = this,
                 oldView = this.childViews.page;
 
-            while(this._onPageChange['out'].length) {
-                // Unload events
-                var f = this._onPageChange['out'].pop();
-                f();
-            }
 
-            this.childViews.page = newPageView;
+            if(oldView
+                && oldView.constructor.type=="Home"
+                && oldView.constructor.type==newPageView.constructor.type
+                && oldView.$el.find('#posts').length){
+                // Two Home views are being exchanged. In this case set only
+                // the content part of the page for a more nuanced effect. Any
+                // animations etc will not fade out with the content.
+                newPageView.render();
+                var $op = oldView.$el.find('#posts'),
+                    $np = newPageView.$el.find('#posts');
 
-            this.listenToOnce(this.childViews.page, 'rendered', function() {
-                if(oldView) {
-                    oldView.$el.fadeOut('fast', function(){
-                        that.render();
-                        oldView.remove();
-                    });
-                }else{
-                    that.render();
+                $op.fadeOut('fast', function() {
+                    // Transfer content from new view to old view
+                    $op.html($np.html());
+                    $op.fadeIn('slow');
+                    oldView.collection = newPageView.collection;
+
+                    // Destroy the new view lest stray views accumulate
+                    newPageView.remove();
+                });
+                
+            }else{
+                // The normal case--swap out old view, swap in new one
+
+                while(this._onPageChange['out'].length) {
+                    // Unload events
+                    var f = this._onPageChange['out'].pop();
+                    f();
                 }
-            });
 
-            while(this._onPageChange['in'].length) {
-                // page in events
-                var f = this._onPageChange['in'].pop();
-                f();
+                this.childViews.page = newPageView;
+
+                this.listenToOnce(this.childViews.page, 'rendered', function() {
+                    if(oldView) {
+                        oldView.$el.fadeOut('fast', function(){
+                            that.render();
+                            oldView.remove();
+                        });
+                    }else{
+                        that.render();
+                    }
+                });
+
+                while(this._onPageChange['in'].length) {
+                    // page in events
+                    var f = this._onPageChange['in'].pop();
+                    f();
+                }
             }
 
         },
