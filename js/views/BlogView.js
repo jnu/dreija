@@ -3,9 +3,10 @@ define([
     'backbone',
     'views/Header',
     'views/Footer',
-    'views/SideBar'
+    'views/SideBar',
+    'views/Categories'
 ],
-function($, Backbone, Header, Footer, SideBar) {
+function($, Backbone, Header, Footer, SideBar, Categories) {
 
     var v = Backbone.View.extend({
         el: 'body',
@@ -35,11 +36,16 @@ function($, Backbone, Header, Footer, SideBar) {
                 _.each(that.childViews, function(me) {
                     me.trigger('router:on');
                 });
+
+                // Add the sidebar modules
+                this.childViews.sideBar.addModule(new Categories({
+                    collection: Blog.pages 
+                }));
             });
 
             this.$pEl = $(this.pEl);
 
-            _.bindAll(this, 'render', 'onPageChange');
+            _.bindAll(this, 'render', 'onPageChange', 'renderStatic');
         },
         //
         onPageChange: function(when, f) {
