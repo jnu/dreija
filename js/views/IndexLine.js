@@ -19,6 +19,11 @@ function($, Backbone) {
             var indexline = Blog.render('indexline', this.properties)
             this.$el.html(indexline);
             return this;
+        },
+        //
+        remove: function() {
+            Backbone.View.prototype.remove.apply(this, arguments);
+            _.each(this.children, function(v){ v.remove(); });
         }
     });
 
