@@ -102,13 +102,14 @@ div.site-info a {
 }
 
 
-span.value {
-    font-size: .7em;
+span.value, p.value {
+    font-size: 1em;
+    font-weight: normal;
 }
 
 @media (max-width: 979px) {
-    span.value {
-        font-size: 1em;
+    span.value, p.value {
+        font-size: 1.1em;
     }
     #sidebar .tab-content {
         margin: 0 2%;
