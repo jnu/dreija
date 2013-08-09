@@ -22,13 +22,19 @@
 
     <div class="row-fluid">
         <div class="span4 category">
-    <span class="value"><%= category %></span>
+    <span class="value">
+        <% if(category) { %>
+        <a href="/category/<% print(_.map(category.split(">"), function(c) { return Blog.wp.cleanPostTitle(c); }).join("/")); %>">
+            <%= category %>
+        </a>
+        <% } %>
+    </span>
         </div>
 
         <div class="date offset4 span4">
             <% if(typeof date!='undefined' && type!='cat') { %>
                 <span class="date">
-    <span class="value"><% if(date) { print(date.format('mmm d, yy')); } %></span>
+    <span class="value"><% if(date&&date.valueOf&&date.valueOf()) { print(date.format('mmm d, yy')); } %></span>
                 </span>
             <% } %>
         </div>
