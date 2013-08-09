@@ -403,6 +403,7 @@
                     /^\/\/[\w]/,    // Links omitting http(s), but are external
                     /^\/static\//,  // static content on server
                     /^\/sandbox\//, // real pages on the server
+                    /^\/img\//      // images
                     ];
                 
                 for(var i=0; i<tests.length; i++) {
