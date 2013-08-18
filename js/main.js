@@ -10,6 +10,7 @@ requirejs.config({
         bootstrap       : 'libs/bootstrap',
         $scrollto       : 'libs/jquery.scrollTo-1.4.6',
         $spritely       : 'libs/jquery.spritely',
+        $stickto        : 'libs/jquery.stickto',
         dateformat      : 'libs/dateFormat',
         analytics       : 'libs/analyticstracking',
         utils           : 'libs/utils',
@@ -26,6 +27,8 @@ requirejs.config({
         //
         $spritely : ['jquery'],
         //
+        $stickto : ['jquery'],
+        //
         bootstrap : ['jquery'],
         //
         blogmachine : {
@@ -40,7 +43,7 @@ require([
     'Blog',
     'analytics', 'dateformat', 'utils', 'loader',
     'jquery',
-    'bootstrap', '$scrollto', '$spritely'
+    'bootstrap', '$scrollto', '$spritely', '$stickto'
 ],
 
 function(Blog) {

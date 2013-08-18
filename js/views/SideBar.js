@@ -11,7 +11,7 @@ function(Config, $, Backbone) {
         contentId: undefined,
         //
         events: {
-            'click li>a' : 'setActive'
+            'click a' : 'setActive'
         },
         //
         modules: {},
@@ -121,6 +121,21 @@ function(Config, $, Backbone) {
                 categories: this.categories
             });
             this.$el.html(sideBar);
+
+            var $row = $("<div class='row-fluid'></div>")
+                .insertAfter(this.$el),
+                $c1 = $('<div class="span2"></div>').appendTo($row),
+                $c2 = $('<div class="span10"></div>').appendTo($row);
+
+            //$c2.append(this.$el);
+
+            //this.$el.stickTo({
+            //    target: '#sidebar',
+            //    align: 'outside-left',
+            //    margin: '5'
+            //});
+
+
 
             // Resize once on render for posterity
             this._resizeHandler();
