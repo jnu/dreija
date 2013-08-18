@@ -27,24 +27,27 @@ function(Config, $, Backbone, Index) {
 
             var tplVariety = 'home',
                 content = Blog.render(tplVariety, {
-                latest: this.collection.sortBy(function(p) {
-                    
-                    var date = (p.get('date') 
-                        ||
-                        (p.get('created')? new Date(p.get('created')) : null));
+                    latest: this.collection.sortBy(function(p) {
+                        
+                        var date = (p.get('date') 
+                            ||
+                            (p.get('created')? new Date(p.get('created')) : null));
 
-                    if(date) {
-                        return p.get('date').valueOf();
-                    }else{
-                        return new Date;
-                    }
+                        if(date) {
+                            return p.get('date').valueOf();
+                        }else{
+                            return new Date;
+                        }
 
-                }).reverse().slice(0, 2).map(function(p){
-                    p.set('link', Blog.wp.createPermalink(p, 'post'));
-                    return p;
-                }),
-                categories: this.categories
-            });
+                    }).reverse().slice(0, 2).map(function(p){
+                        p.set('link', Blog.wp.createPermalink(p, 'post'));
+                        return p;
+                    }),
+                    progress : this.collection.filter(function(p){
+                        return p.get('type')=='progress';
+                    }),
+                    categories: this.categories
+                });
 
             this.$el.html(content);
             this.$el.find('#index-cont').html(index.el);

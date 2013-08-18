@@ -22,6 +22,9 @@ function(Config, $, Backbone, IndexLine) {
                 pageCtr = 0;
 
             sortedPosts.forEach(function(currentPost, i) {
+                if(currentPost.get('type')=='progress') {
+                    return;
+                }
 
                 // Add a new IndexLine for the current post
                 var date = currentPost.get('date', null);
