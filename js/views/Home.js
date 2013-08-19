@@ -28,6 +28,11 @@ function(Config, $, Backbone, Index) {
             var tplVariety = 'home',
                 content = Blog.render(tplVariety, {
                     latest: this.collection.sortBy(function(p) {
+
+                        if(p.get('type')=='progress') {
+                            // Push "In the works" posts to the end
+                            return new Date(0);
+                        }
                         
                         var date = (p.get('date') 
                             ||
