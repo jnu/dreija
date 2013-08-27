@@ -22,8 +22,8 @@
                             My most recent post is
                             <a href="<% print(latest[0].get('link')); %>">
                                 <% print(latest[0].get('title')); %>
-                            </a>,
-                            which I wrote <% print(latest[0].get('whichiwrote')); %>.
+                            </a>.
+                            
                             <% if(latest[0].get('date') instanceof Date) { %>
                                 (<% print(latest[0].get('date').format('mmm d')); %>)
                             <% } %>
