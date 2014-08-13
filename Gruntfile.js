@@ -16,7 +16,7 @@ module.exports = function(grunt) {
             },
             build: ['<%= vars.buildpath %>']
         },
- 
+
         copy: {
             main: {
                 files: [
@@ -53,7 +53,8 @@ module.exports = function(grunt) {
             build: {
                 files: {
                     '<%= vars.buildpath %>/public/js/bundle.js': '<%= vars.tmppath %>/bundle.js',
-                    '<%= vars.buildpath %>/app.js': 'src/app.js'
+                    '<%= vars.buildpath %>/app.js': 'src/app.js',
+                    '<%= vars.buildpath %>/swig-react.js': 'src/swig-react.js'
                 }
             }
         },

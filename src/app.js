@@ -5,7 +5,7 @@
 
 var express = require('express');
 var couchdb = require('felix-couchdb');
-var swig = require('swig');
+var swig = require('swig')
 
 var app = express();
 var client = couchdb.createClient(5984, 'localhost');
@@ -13,6 +13,10 @@ var db = client.db('joenoodles');
 var posts = [];
 var categories = [];
 var _getter = (function(k, d) { return this[k] || d; });
+
+// swig extension
+var reactSwig = require('./swig-react');
+reactSwig.setTagOn(swig);
 
 // app initialization
 app.engine('html', swig.renderFile);
@@ -52,7 +56,7 @@ app.use(express.static(__dirname + '/public'));
 //             res.send(JSON.stringify(er));
 //         }else{
 //             doc = doc || {};
-            
+
 //             doc.get = _getter.bind(doc);
 
 //             var content = "<h1>"+ doc.get('title', '') +"</h1><div>"+ doc.get('content', '') +"</div><div class='author'>By "+ doc.get('author', '') +"</div><div class='linkback'><a href='/'>Home</a></div>";
@@ -159,7 +163,7 @@ app.get('/:name', function(req, res) {
 });
 
 
-               
+
 
 
 
