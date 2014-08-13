@@ -1,109 +1,77 @@
 module.exports = function(grunt) {
-    // project config
+
     grunt.initConfig({
-        // variables
+
         pkg: grunt.file.readJSON('package.json'),
+
         vars: {
-            buildpath: '../<%= pkg.name %>-build',
+            buildpath: './build',
+            tmppath: './tmp',
             host: '54.214.244.77'
         },
-        //
+
         clean: {
             options: {
                 force: true
             },
             build: ['<%= vars.buildpath %>']
         },
-        //
-        requirejs: {
-            compile: {
-                options: {
-                    baseUrl: "js",
-                    mainConfigFile: "js/main.js",
-                    out: "<%= vars.buildpath %>/js/main.js",
-                    name: "main"
-                }
-            }
-        },
-        //
+ 
         copy: {
             main: {
                 files: [
                     {
                         expand: true,
-                        src: ['styles/*.png'],
-                        dest: "<%= vars.buildpath %>/",
-                        filter: 'isFile'
+                        src: ['src/styles/*.png'],
+                        dest: "<%= vars.buildpath %>/public/styles",
+                        filter: 'isFile',
+                        flatten: true
                     },
                     {
                         expand: true,
-                        src: ['img/*.png'],
-                        dest: "<%= vars.buildpath %>/",
-                        filter: 'isFile'
+                        src: ['src/img/*.png'],
+                        dest: "<%= vars.buildpath %>/public/img",
+                        filter: 'isFile',
+                        flatten: true
                     },
                     {
                         expand: true,
-                        src: ['templates/*.html'],
-                        dest: "<%= vars.buildpath %>/",
-                        filter: 'isFile'
+                        src: ['src/templates/*.html'],
+                        dest: "<%= vars.buildpath %>/templates",
+                        filter: 'isFile',
+                        flatten: true
                     },
                     {
-                        expand: true,
-                        src: ['js/*.conf]'],
-                        dest: "<%= vars.buildpath %>/"
+                        src: 'src/app.conf',
+                        dest: "<%= vars.buildpath %>/app.conf"
                     }
                 ]
             }
         },
-        //
+
         uglify: {
             build: {
-                files: [
-                    {
-                        expand: true,
-                        src: 'js/libs/*.js',
-                        dest: '<%= vars.buildpath %>'
-                    },
-                    {
-                        expand: true,
-                        src: 'js/ss.js',
-                        dest: '<%= vars.buildpath %>'
-                    }
-                ]
+                files: {
+                    '<%= vars.buildpath %>/public/js/bundle.js': '<%= vars.tmppath %>/bundle.js',
+                    '<%= vars.buildpath %>/app.js': 'src/app.js'
+                }
             }
         },
-        //
+
         cssmin: {
             minify: {
                 expand: true,
-                cwd: 'styles/',
+                cwd: 'src/styles/',
                 src: ['*.css'],
-                dest: '<%= vars.buildpath %>/styles/',
+                dest: '<%= vars.buildpath %>/public/styles/',
                 ext: '.css'
             }
         },
-        //
-        htmlmin: {
-            dist: {
-                options: {
-                    removeComments: true,
-                    collapseWhitespace: true
-                },
-                files: [
-                    {
-                        expand: true,
-                        src: 'index.html',
-                        dest: '<%= vars.buildpath %>/'
-                    } /*, htmlmin can't handle parsing templates ATM.
-                    {
-                        expand: true,
-                        src: 'templates/*.html',
-                        dest: '<%= vars.buildpath %>/'
-                    }*/
-                ]
-            }
+
+        browserify: {
+            '<%= vars.tmppath %>/bundle.js': ['src/main.js']
         },
-        //
+
         rsync: {
             options: {
                 args: ['--verbose'],
@@ -132,15 +100,14 @@ module.exports = function(grunt) {
     // Load tasks
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-contrib-uglify');
-    grunt.loadNpmTasks('grunt-contrib-requirejs');
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-cssmin');
-    grunt.loadNpmTasks('grunt-contrib-htmlmin');
+    grunt.loadNpmTasks('grunt-browserify');
     grunt.loadNpmTasks('grunt-rsync');
 
     // build
     grunt.registerTask('build',
-        ['clean', 'requirejs', 'copy', 'uglify', 'cssmin', 'htmlmin']);
+        ['clean', 'browserify', 'copy', 'uglify', 'cssmin']);
 
     // deploy
     grunt.registerTask('deploy',

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="description" content="A blog about many things centered around humans, computers, and the way they interact with one another.">
+		<meta property='og:image' content='http://joenoodles.com/img/jnlogo.png' />
+		<meta property='og:title' content='{{ title }}' />
+		<title>{{ title }}</title>
+		<link rel='image_src' href='/img/jnlogo.png'/>
+		<link rel="stylesheet" href="/styles/blog.css" />
+		{% block js %}
+			<script type="text/javascript" src="/js/bundle.js"></script>
+		{% endblock %}
+	</head>
+	<body>
+		{% block header %}{% endblock %}
+		{% block content %}{% endblock %}
+		{% block footer %}{% endblock %}
+ 	</body>
+ </html>

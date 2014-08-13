@@ -1,0 +1,36 @@
+
+<div class="span6 hidden-phone">
+    <div class="row-fluid text-center">
+        <div class="span12">
+            <h2>In the Works</h2>
+            <i class="icon-leaf"></i>
+        </div>
+    </div>
+
+    <% progress.forEach(function(p) { %>
+
+        <div class="row-fluid text-center">
+            <div class="span12">
+                <h2 class="lead muted"><%= p.get('title') %></h2>
+            </div>
+        </div>
+
+        <div class="row-fluid text-center">
+            <div class="offset4">
+                <%= p.get('image') %>
+            </div>
+        </div>
+
+        <div class="row-fluid">
+            <div class="span8 offset2">
+                <p class="muted"><%= p.get('snippet') %></p>
+                <p class="muted">
+                    <span class="value pull-right">
+                        <%= p.get('date').format('mmm d') %>
+                    </span>
+                </p>
+            </div>
+        </div>
+
+    <% }); %>
+</div>

@@ -1,8 +1,8 @@
-*-min.js
-*.min.js
 .DS_Store
 *.dump
 *.psd
 img/src/
 deprecated/
 node_modules/
+build/*
+tmp
