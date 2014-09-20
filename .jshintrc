@@ -1,0 +1,14 @@
+{
+    "esnext": true,
+    "newcap": false,
+    "node": true,
+    "latedef": true,
+    "eqeqeq": true,
+    "undef": true,
+    "unused": true,
+    "strict": true,
+    "maxlen": 80,
+    "camelcase": true,
+    "curly": true,
+    "indent": 4
+}

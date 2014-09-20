@@ -14,16 +14,15 @@
 	</head>
 	<body>
 		{% block header %}
-			{% include './header.html' %}
-		{% endblock %}
-		{% block content %}
-		{% endblock %}
-		{% block footer %}
-			{% include './footer.html' %}
+		    {% set props = { location: location } %}
+			{% set tagprops = { tag: "div", id: "layout" } %}
+			{% react "./Router" with props in tagprops %}
 		{% endblock %}
 
 		{% block init %}
-			{% include './js-init.html' %}
-		{% endblock init %}
+			<script type="text/javascript">
+				Blog.start();
+			</script>
+		{% endblock %}
  	</body>
  </html>

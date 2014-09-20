@@ -1,5 +1,14 @@
+/**
+ * App entry point
+ */
+/* jshint browser: true */
+
+'use strict';
+
 var React = require('react');
-require('./components/ui/shared/Header');
+// XXX: need to include here so browserify bundles dependencies. Is there a
+// better way of doing this?
+require('./components/Router');
 
 
 module.exports = {
