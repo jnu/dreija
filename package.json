@@ -26,8 +26,9 @@
     "koa-swig": "~0.7.0",
     "koa-static": "~1.4.7",
     "bluebird": "~2.3.2",
-    "react-router": "~0.7.0",
-    "winston": "~0.8.0"
+    "winston": "~0.8.0",
+    "react-async": "~1.0.2",
+    "react-router-component": "~0.20.1"
   },
   "scripts": {
     "test": "mocha -R landing js/test.js",
@@ -35,6 +36,7 @@
     "start-dev": "{ ( cd ./dist ; NODE_ENV=development DEBUG=true node --harmony app.js ) & } ; npm run get-app-pid",
     "stop": "npm run get-app-pid && cat ./dist/.app-pid | xargs kill && rm ./dist/.app-pid",
     "watch": "NODE_ENV=development DEBUG=true watchify --extension=.jsx ./src/main.js -o ./dist/blog-app.dev.js -v -d -s Blog",
+    "watch-ss": "jsx --watch -x jsx ./src/components ./dist/components",
     "clean": "rm -rf ./tmp ./dist",
     "setup": "mkdir -p ./dist",
     "build-js-dev": "NODE_ENV=development DEBUG=true browserify --extension=.jsx  ./src/main.js -o ./dist/blog-app.dev.js -d -s Blog",

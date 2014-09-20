@@ -14,7 +14,7 @@
 	</head>
 	<body>
 		{% block header %}
-		    {% set props = { location: location } %}
+		    {% set props = { path: path } %}
 			{% set tagprops = { tag: "div", id: "layout" } %}
 			{% react "./Router" with props in tagprops %}
 		{% endblock %}

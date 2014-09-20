@@ -1,27 +1,32 @@
 /**
+ * Router - Isomorphic on client and server
  * @jsx React.DOM
  */
 
 'use strict';
 
 var React = require('react');
-var Router = require('react-router');
-var DefaultRoute = Router.DefaultRoute;
-var Route = Router.Route;
-var Routes = Router.Routes;
+var Router = require('react-router-component');
+var Page = Router.Page;
+var Pages = Router.Pages;
+var NotFound = Router.NotFound;
+
 // components
-var App = require('./App');
 var Home = require('./Home');
+var NotFoundPage = require('./NotFound');
 
 var AppRouter = React.createClass({
 
+    propTypes: {
+        path: React.PropTypes.string
+    },
+
     render: function() {
         return (
-            <Routes location={this.props.location}>
-                <Route path="/" handler={App}>
-                    <DefaultRoute handler={Home} />
-                </Route>
-            </Routes>
+            <Pages path={this.props.path}>
+                <Page path="/" handler={Home} />
+                <NotFound handler={NotFoundPage} />
+            </Pages>
         );
     }
 

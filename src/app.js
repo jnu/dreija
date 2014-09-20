@@ -18,9 +18,6 @@ var render = require('koa-swig');
 // swig extensions
 var reactSwig = require('swig-react');
 
-// router
-// XXX: Fork react-router to expose this?
-var location = require('../node_modules/react-router/modules/locations/MemoryLocation');
 
 // -- Init ----------------------------------------------------------------- //
 
@@ -42,39 +39,23 @@ render(app, {
 
 function vars(obj) {
     return _.extend({}, obj, {
-        env: DEV ? 'dev' : 'min',
-        location: location
+        env: DEV ? 'dev' : 'min'
     });
 }
 
 
 // -- Router --------------------------------------------------------------- //
 
-function logRequest() {
-    console.log('info', 'Location set to ' + location.getCurrentPath());
-}
-
-// Set MemoryLocation Store to serialize as "history" so that the browser gets
-// gives the router the props { location: "history" }, causing it to take over
-// with HTML5 PushState. Thus we have a single page app with completely
-// isomorphic routing.
-// XXX: Is there a less hacky way to do this?
-location.toJSON = function() {
-    return "history";
-};
-
-function setLocation(path) {
-    // Override the store's change handlers with our own. Each request should
-    // be treated as independent on the server.
-    // XXX: Is there a less hacky way to do this? Right now there's some cruft
-    // in setting up the Router - ideally we'd use a subset of it on the server.
-    location.setup(logRequest);
-    location.replace(path);
+function logRequest(path) {
+    logger.log('info', 'Location set to ', path);
 }
 
 router = function *() {
-    setLocation(this.path);
-    yield this.render('index', vars({ title: 'Joe Noodles' }));
+    logRequest(this.path);
+    yield this.render('index', vars({
+        title: 'Joe Noodles',
+        path: this.path
+    }));
 };
 
 
