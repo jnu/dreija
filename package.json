@@ -2,41 +2,51 @@
   "name": "blogmachine",
   "version": "0.2.0",
   "description": "Lightweight JS blogging engine for joenoodles.com",
-  "main": "index.html",
-  "scripts": {
-    "test": "mocha -R landing js/test.js"
-  },
   "repository": {
     "type": "git",
     "url": "git://github.com/jnu/blogmachine.git"
   },
-  "keywords": [
-    "blog",
-    "engine",
-    "backbone",
-    "javascript",
-    "client-side"
-  ],
   "author": "Joe Nudell",
   "license": "BSD",
   "readmeFilename": "README.md",
   "gitHead": "bbaed914045742b1d99729f546a5a11059e6fb91",
   "devDependencies": {
-    "grunt": "~0.4.1",
-    "grunt-contrib-cssmin": "~0.6.1",
-    "grunt-contrib-copy": "~0.5.0",
-    "grunt-contrib-clean": "~0.5.0",
-    "grunt-contrib-uglify": "~0.5.1",
-    "grunt-rsync": "~0.2.0",
     "chai": "~1.7.2",
     "mocha": "~1.12.0",
-    "grunt-browserify": "~2.1.4"
+    "crossroads": "~0.12.0",
+    "browserify": "~5.12.0",
+    "watchify": "~1.0.2",
+    "reactify": "~0.14.0",
+    "envify": "~3.0.0"
   },
   "dependencies": {
     "react": "~0.11.1",
     "swig": "~1.4.2",
     "underscore": "~1.6.0",
-    "express": "~4.8.3",
-    "felix-couchdb": "~1.0.7"
+    "swig-react": "git://github.com/jnu/swig-react.git#v0.0.2",
+    "koa": "~0.11.0",
+    "koa-swig": "~0.7.0",
+    "kroute": "~1.0.0",
+    "koa-static": "~1.4.7",
+    "bluebird": "~2.3.2"
+  },
+  "scripts": {
+    "test": "mocha -R landing js/test.js",
+    "get-app-pid": "ps -e | grep \"node --harmony app.js\" | head -2 | awk '{print $1}' > ./dist/.app-pid",
+    "start-dev": "{ ( cd ./dist ; NODE_ENV=development DEBUG=true node --harmony app.js ) & } ; npm run get-app-pid",
+    "stop": "npm run get-app-pid && cat ./dist/.app-pid | xargs kill && rm ./dist/.app-pid",
+    "watch": "NODE_ENV=development DEBUG=true watchify --extension=.jsx ./src/main.js -o ./dist/blog-app.dev.js -v -d -s Blog",
+    "clean": "rm -rf ./tmp ./dist",
+    "setup": "mkdir -p ./dist",
+    "build-js-dev": "NODE_ENV=development DEBUG=true browserify --extension=.jsx  ./src/main.js -o ./dist/blog-app.dev.js -d -s Blog",
+    "compile-ss-js": "cp ./src/app.js ./dist/app.js && jsx -x jsx ./src/components ./dist/components",
+    "build-html-dev": "cp -r ./src/views ./dist/views",
+    "dev": "npm run clean && npm run setup && npm run compile-ss-js && npm run build-js-dev && npm run build-html-dev && npm run start-dev && npm run watch"
+  },
+  "browserify": {
+    "transform": [
+      "reactify",
+      "envify"
+    ]
   }
 }

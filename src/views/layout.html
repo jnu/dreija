@@ -6,20 +6,24 @@
 		<meta property='og:image' content='http://joenoodles.com/img/jnlogo.png' />
 		<meta property='og:title' content='{{ title }}' />
 		<title>{{ title }}</title>
-		<link rel='image_src' href='/img/jnlogo.png'/>
-		<link rel="stylesheet" href="/styles/blog.css" />
+		<!-- <link rel='image_src' href='/img/jnlogo.png'/>
+		<link rel="stylesheet" href="./blog-app.{{env}}.css" /> -->
 		{% block js %}
-			<script type="text/javascript" src="/js/bundle.js"></script>
+			<script type="text/javascript" src="./blog-app.{{env}}.js"></script>
 		{% endblock %}
 	</head>
 	<body>
 		{% block header %}
-			{% include './_header.html' %}
+			{% include './header.html' %}
 		{% endblock %}
 		{% block content %}
 		{% endblock %}
 		{% block footer %}
-			{% include './_footer.html' %}
+			{% include './footer.html' %}
 		{% endblock %}
+
+		{% block init %}
+			{% include './js-init.html' %}
+		{% endblock init %}
  	</body>
  </html>

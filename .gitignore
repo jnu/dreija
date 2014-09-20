@@ -4,5 +4,5 @@
 img/src/
 deprecated/
 node_modules/
-build/*
-tmp
+dist/
+tmp/
