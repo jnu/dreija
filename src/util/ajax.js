@@ -29,13 +29,14 @@ function _req(method, path, opts) {
 
     var xhr = new XMLHttpRequest();
     var success = opts.success || noop;
+    var realSuccess = success;
     var error = opts.error || noop;
     var data = opts.data;
 
     // Parse return as json if specified
     if (opts.json) {
         success = function(txt) {
-            success(JSON.parse(txt + ""));
+            realSuccess(JSON.parse(txt + ""));
         };
     }
 

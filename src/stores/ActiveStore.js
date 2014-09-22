@@ -38,9 +38,27 @@ _.extend(ActiveStore.prototype, Store.prototype, {
 
         if (!item) {
             fetchRemote(this.getURL(id), function(json) {
-                var data = json;
+                var data;
                 if (json) {
-                    data = json[store.name];
+                    if (DEBUG) {
+                        if (json.store !== store.name) {
+                            console.warn(
+                                "ActiveStore instance `" + store.name + "` " +
+                                "received data for store " + json.store + "! " +
+                                "The app will probably crash."
+                            );
+                        }
+
+                        if (json.data.length > 1) {
+                            console.warn(
+                                "ActiveStore instance `" + store.name + "` " +
+                                "was given multiple pieces of data (" +
+                                    json.data.length +
+                                "). Extra pieces are being dropped."
+                            );
+                        }
+                    }
+                    data = json.data[0];
                     store.set(id, data);
                 }
                 cb(data);
