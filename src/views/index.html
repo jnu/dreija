@@ -9,12 +9,15 @@
 		<!-- <link rel='image_src' href='/img/jnlogo.png'/>
 		<link rel="stylesheet" href="./blog-app.{{env}}.css" /> -->
 		{% block js %}
-			<script type="text/javascript" src="./blog-app.{{env}}.js"></script>
+			<script type="text/javascript">
+			window.DEBUG = ('{{env}}' === 'dev');
+			</script>
+			<script type="text/javascript" src="/blog-app.{{env}}.js"></script>
 		{% endblock %}
 	</head>
 	<body>
 		{% block header %}
-		    {% set props = { path: path } %}
+		    {% set props = { path: path, data: data } %}
 			{% set tagprops = { tag: "div", id: "layout" } %}
 			{% react "./Router" with props in tagprops %}
 		{% endblock %}

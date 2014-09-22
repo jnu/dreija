@@ -10,10 +10,15 @@ var React = require('react');
 // better way of doing this?
 require('./components/Router');
 
+var PostStore = require('./stores/PostStore');
 
 module.exports = {
 
     _cmp: [],
+
+    _stores: {
+        'PostStore': PostStore
+    },
 
     start: function() {
         var rootNodes = document.querySelectorAll('[data-react-class]');
@@ -31,7 +36,7 @@ module.exports = {
 
             return activeCmp;
         });
-    },
+    }
 
 
 };
