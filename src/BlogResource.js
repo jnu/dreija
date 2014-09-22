@@ -8,7 +8,7 @@ var BlogResource = {
 
     getPostById: function *() {
         var id = this.params.id;
-        yield {
+        return {
             id: id,
             title: "title: " + id,
             content: "bla bla bla"

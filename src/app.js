@@ -50,14 +50,9 @@ render(app, {
 
 function accessor(targetStore, gen) {
     return function *() {
-        var data = [];
-        for (var res of gen.call(this)) {
-            data.push(res);
-        }
-
         yield {
             store: targetStore,
-            data: data
+            data: yield *gen.call(this)
         };
     };
 }
