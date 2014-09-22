@@ -40,7 +40,9 @@ var AppRouter = React.createClass({
                     if (store) {
                         stores[key].reset(data[key]);
                     } else {
-                        console.log("CAn't set store: " + key)
+                        if (DEBUG) {
+                            console.warn("Can't inflate store: " + key);
+                        }
                     }
                 }
             }
