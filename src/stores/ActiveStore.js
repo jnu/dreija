@@ -7,6 +7,7 @@
 var _ = require('underscore');
 var ajax = require('../util/ajax');
 var Store = require('./Store');
+var APIClient = require('../util/APIClient');
 
 function fetchRemote(path, cb) {
     ajax.get(path, {
@@ -21,6 +22,21 @@ function fetchRemote(path, cb) {
 function ActiveStore() {
     Store.apply(this, arguments);
 }
+
+// Static methods
+_.extend(ActiveStore, {
+
+    create: function(name, endpoint) {
+        return _.extend(new ActiveStore(), {
+            getURL: APIClient.getByIdUrl.bind(null, endpoint),
+            name: name
+        });
+
+    }
+
+});
+
+// Prototype methods
 
 _.extend(ActiveStore.prototype, Store.prototype, {
 

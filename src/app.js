@@ -129,7 +129,7 @@ function getInitialData(path) {
 // -- Renderer ------------------------------------------------------------- //
 
 function isStatic(path) {
-    return /\.(js|css|png)$/.test(path);
+    return /\.(js|css|png|ico)$/.test(path);
 }
 
 function isApiRequest(path) {

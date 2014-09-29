@@ -12,6 +12,7 @@ var Locations = Router.Locations;
 var NotFound = Router.NotFound;
 
 // components
+var Layout = require('./ui/static/Layout');
 var Home = require('./Home');
 var NotFoundPage = require('./NotFound');
 var Post = require('./Post');
@@ -51,11 +52,13 @@ var AppRouter = React.createClass({
 
     render: function() {
         return (
-            <Locations path={this.props.path}>
-                <Location path="/" handler={Home} />
-                <Location path="/post/:id" handler={Post} />
-                <NotFound handler={NotFoundPage} />
-            </Locations>
+            <Layout>
+                <Locations path={this.props.path}>
+                    <Location path="/" handler={Home} />
+                    <Location path="/post/:id" handler={Post} />
+                    <NotFound handler={NotFoundPage} />
+                </Locations>
+            </Layout>
         );
     }
 
