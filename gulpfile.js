@@ -18,7 +18,6 @@ var source = require('vinyl-source-stream');
 // Env setup
 
 var PROD = (process.env.NODE_ENV === 'production');
-var DEV = (process.env.NODE_ENV === 'development');
 var BUNDLE_NAME = 'blog-app.' + (PROD ? 'min' : 'dev') + '.js';
 
 var SRC_DIR = './src';
@@ -41,7 +40,7 @@ var SRC_TO_COPY = [SRC_JS, SRC_HTML].concat(EXCLUDED);
 function createBrowserify(args) {
     return browserify(_.defaults(args || {}, {
             insertGlobals: true,
-            debug: DEV,
+            debug: !PROD,
             extensions: ['.jsx'],
             standalone: 'Blog'
         }))
