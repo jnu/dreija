@@ -30,7 +30,7 @@
     "underscore": "~1.6.0",
     "swig-react": "git://github.com/jnu/swig-react.git#v0.0.2",
     "koa": "~0.11.0",
-    "koa-swig": "~0.7.0",
+    "koa-swig": "git://github.com/jnu/koa-swig.git#master",
     "koa-static": "~1.4.7",
     "bluebird": "~2.3.2",
     "react-async": "~1.0.2",

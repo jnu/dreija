@@ -30,9 +30,10 @@ var DEST_DIR = './dist';
 var SERVER = DEST_DIR + '/app.js';
 
 var EXCLUDED = [
-    '!./src/main.js',
-    '!./src/util/**/*.js'
+    '!./src/main.js'
 ];
+
+var SRC_TO_COPY = [SRC_JS, SRC_HTML].concat(EXCLUDED);
 
 
 // Helpers
@@ -70,7 +71,7 @@ gulp.task('server:start', function() {
 });
 
 gulp.task('copy:dev', function() {
-    return gulp.src([SRC_JS, SRC_HTML].concat(EXCLUDED))
+    return gulp.src(SRC_TO_COPY)
         .pipe(changed(DEST_DIR))
         .pipe(gulp.dest(DEST_DIR));
 });
@@ -99,8 +100,12 @@ gulp.task('watch:bundle', function() {
     });
 });
 
+gulp.task('watch:copy', function() {
+    gulp.watch(SRC_TO_COPY, ['copy:dev']);
+});
+
 
 // High-level tasks
 gulp.task('build:dev', ['bundle:dev', 'copy:dev', 'jsx']);
-gulp.task('watch', ['build:dev', 'watch:server', 'watch:bundle']);
+gulp.task('watch', ['build:dev', 'watch:server', 'watch:bundle', 'watch:copy']);
 

@@ -45,7 +45,10 @@ render(app, {
     cache: 'memory',
     ext: 'html',
     tags: { react: reactSwig.tag },
-    extensions: { react: reactSwig.extension }
+    extensions: { react: reactSwig.extension },
+    opts: {
+        reactComponentRoot: path.join(__dirname, 'components')
+    }
 });
 
 
