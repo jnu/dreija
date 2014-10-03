@@ -6,11 +6,10 @@
 'use strict';
 
 var React = require('react');
+var PostStore = require('./stores/PostStore');
 // XXX: need to include here so browserify bundles dependencies. Is there a
 // better way of doing this?
 require('./components/Router');
-
-var PostStore = require('./stores/PostStore');
 
 module.exports = {
 

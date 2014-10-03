@@ -5,6 +5,10 @@
 
 'use strict';
 
+var merge = require('utils-merge');
+var EventEmitter = require('node-event-emitter').EventEmitter;
+var ajax;
+
 function noop() {}
 
 // Handle return of request, calling appropriate callbacks
@@ -13,8 +17,10 @@ function _dispatch(xhr, success, error) {
         if (xhr.readyState === XMLHttpRequest.DONE) {
             if (xhr.status === 200 || xhr.status === 0) {
                 success(xhr.responseText);
+                this.emit('end');
             } else {
                 error(xhr.responseText);
+                this.emit('error');
             }
         }
     };
@@ -49,8 +55,9 @@ function _req(method, path, opts) {
     }
 
     // Send out request
-    xhr.onreadystatechange = _dispatch(xhr, success, error);
+    xhr.onreadystatechange = _dispatch(xhr, success, error).bind(ajax);
     xhr.open(method, path, true);
+    ajax.emit('start');
     xhr.send(data || null);
 }
 
@@ -65,14 +72,14 @@ function _req(method, path, opts) {
  * @property {Boolean}  [json]  Whether to parse result as JSON
  */
 
-var ajax = {
+ajax = {
 
     /**
      * Perform GET request
      * @param {String}  path Path to get
      * @param {ReqOpts} opts Request options
      */
-    get: _req.bind(null, 'GET'),
+    get: _req.bind(ajax, 'GET'),
 
 
     /**
@@ -80,8 +87,12 @@ var ajax = {
      * @param {String}  path Path to get
      * @param {ReqOpts} opts Request options
      */
-    post: _req.bind(null, 'POST')
+    post: _req.bind(ajax, 'POST')
 
 };
 
+// extend ajax with EventEmitter
+merge(ajax, new EventEmitter())
+
 module.exports = ajax;
+global.ajax = ajax;

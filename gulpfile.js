@@ -13,6 +13,8 @@ var watchify = require('watchify');
 var reactify = require('reactify');
 var envify = require('envify');
 var source = require('vinyl-source-stream');
+var less = require('gulp-less');
+var sourcemaps = require('gulp-sourcemaps');
 
 
 // Env setup
@@ -23,7 +25,9 @@ var BUNDLE_NAME = 'blog-app.' + (PROD ? 'min' : 'dev') + '.js';
 var SRC_DIR = './src';
 var SRC_JS = SRC_DIR + '/**/*.js';
 var SRC_JSX = SRC_JS + 'x';
+var SRC_LESS = SRC_DIR + '/styles/*.less';
 var SRC_HTML = SRC_DIR + '/**/*.html';
+var SRC_PNG = SRC_DIR + '/**/*.png';
 var SRC_BUNDLE = SRC_DIR + '/main.js';
 var DEST_DIR = './dist';
 var SERVER = DEST_DIR + '/app.js';
@@ -32,7 +36,7 @@ var EXCLUDED = [
     '!./src/main.js'
 ];
 
-var SRC_TO_COPY = [SRC_JS, SRC_HTML].concat(EXCLUDED);
+var SRC_TO_COPY = [SRC_JS, SRC_HTML, SRC_PNG].concat(EXCLUDED);
 
 
 // Helpers
@@ -49,7 +53,7 @@ function createBrowserify(args) {
 }
 
 function useBrowserify(b) {
-    b.bundle()
+    return b.bundle()
         .pipe(source(BUNDLE_NAME))
         .pipe(gulp.dest(DEST_DIR));
 }
@@ -81,6 +85,14 @@ gulp.task('jsx', function() {
         .pipe(gulp.dest(DEST_DIR));
 });
 
+gulp.task('less:dev', function() {
+    gulp.src(SRC_LESS)
+        .pipe(sourcemaps.init())
+        .pipe(less({ compress: true }))
+        .pipe(sourcemaps.write())
+        .pipe(gulp.dest(DEST_DIR));
+});
+
 gulp.task('bundle:dev', function() {
     var b = createBrowserify();
     b.add(SRC_BUNDLE);
@@ -94,17 +106,36 @@ gulp.task('watch:server', ['server:start'], function() {
 gulp.task('watch:bundle', function() {
     var b = watchify(createBrowserify(watchify.args));
 
-    b.on('update', function() {
-        useBrowserify(b);
-    });
+    var rebundle = function() {
+        return useBrowserify(b);
+    };
+
+    b.on('update', rebundle);
+    b.add(SRC_BUNDLE);
+
+    rebundle();
+});
+
+gulp.task('watch:jsx', function() {
+    gulp.watch(SRC_JSX, ['jsx']);
 });
 
 gulp.task('watch:copy', function() {
     gulp.watch(SRC_TO_COPY, ['copy:dev']);
 });
 
+gulp.task('watch:less', function() {
+    gulp.watch(SRC_LESS, ['less:dev']);
+});
 
 // High-level tasks
-gulp.task('build:dev', ['bundle:dev', 'copy:dev', 'jsx']);
-gulp.task('watch', ['build:dev', 'watch:server', 'watch:bundle', 'watch:copy']);
+gulp.task('build:dev', ['bundle:dev', 'copy:dev', 'less:dev', 'jsx']);
+gulp.task('watch', [
+    'build:dev',
+    'watch:server',
+    'watch:copy',
+    'watch:less',
+    'watch:bundle',
+    'watch:jsx'
+]);
 
