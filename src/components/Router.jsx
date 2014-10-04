@@ -6,21 +6,30 @@
 'use strict';
 
 var React = require('react');
-var Router = require('react-router-component');
-var Location = Router.Location;
-var Locations = Router.Locations;
-var NotFound = Router.NotFound;
+var Router = require('react-router-component/lib/Router');
+var Route = require('react-router-component/lib/Route');
 
-// components
+// Local JSX Components
 var Layout = require('./Layout');
 var Home = require('./Home');
-var NotFoundPage = require('./NotFound');
+var NotFound = require('./NotFound');
 var Post = require('./Post');
+
+// Stores
 var PostStore = require('../stores/PostStore');
+
+// Create a router that renders components inside the custom Layout component.
+// This isn't technically a part of the library's custom API, so we have to
+// reach into the `lib/Router` for it. Brittle, but should be OK for now.
+// XXX: Maybe submit a PR to expose `createRouter`?
+var Pages = Router.createRouter('Pages', Layout);
+var Page = Route.Route;
+var NotFoundPage = Route.NotFound;
 
 var stores = {
     'PostStore': PostStore
 };
+
 
 var AppRouter = React.createClass({
 
@@ -41,7 +50,7 @@ var AppRouter = React.createClass({
                     if (store) {
                         stores[key].reset(data[key]);
                     } else {
-                        if (DEBUG) {
+                        if (process.env.NODE_ENV !== 'production') {
                             console.warn("Can't inflate store: " + key);
                         }
                     }
@@ -52,13 +61,11 @@ var AppRouter = React.createClass({
 
     render: function() {
         return (
-            <Layout>
-                <Locations path={this.props.path}>
-                    <Location path="/" handler={Home} />
-                    <Location path="/post/:id" handler={Post} />
-                    <NotFound handler={NotFoundPage} />
-                </Locations>
-            </Layout>
+            <Pages path={this.props.path}>
+                <Page path="/" handler={Home} />
+                <Page path="/post/:id" handler={Post} />
+                <NotFoundPage handler={NotFound} />
+            </Pages>
         );
     }
 

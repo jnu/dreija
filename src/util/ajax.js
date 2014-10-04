@@ -92,7 +92,6 @@ ajax = {
 };
 
 // extend ajax with EventEmitter
-merge(ajax, new EventEmitter())
+merge(ajax, new EventEmitter());
 
 module.exports = ajax;
-global.ajax = ajax;

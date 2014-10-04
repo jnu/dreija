@@ -9,10 +9,12 @@
 		<!-- <link rel='image_src' href='/img/jnlogo.png'/> -->
 		<link rel="stylesheet" href="/blog-app.css" />
 		{% block js %}
-			<script type="text/javascript">
-			window.DEBUG = ('{{env}}' === 'dev');
-			</script>
-			<script type="text/javascript" src="/blog-app.{{env}}.js"></script>
+			{% if env == 'dev' %}
+				<script type="text/javascript">
+				window.DEBUG = true;
+				</script>
+			{% endif %}
+			<script type="text/javascript" src="/blog-app.js"></script>
 		{% endblock %}
 	</head>
 	<body>

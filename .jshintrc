@@ -11,5 +11,5 @@
     "camelcase": true,
     "curly": true,
     "indent": 4,
-    "predef": ["DEBUG"]
+    "predef": ["-Promise"]
 }

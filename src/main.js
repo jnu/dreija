@@ -39,3 +39,14 @@ module.exports = {
 
 
 };
+
+// Expose some stuff in require mode
+if (process.env.NODE_ENV !== 'production') {
+    global.React = React;
+    global.ajax = require('./util/ajax');
+} else {
+    console.log(
+        "Welcome! The full, unminified source of this page is availble at: " +
+        "https://github.com/jnu/blogmachine"
+    );
+}

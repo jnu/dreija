@@ -41,7 +41,7 @@ _.extend(ActiveStore, {
 _.extend(ActiveStore.prototype, Store.prototype, {
 
     getURL: function() {
-        if (DEBUG) {
+        if (process.env.NODE_ENV !== 'production') {
             console.warn(
                 "ActiveStore instance called without a #getURL implementation"
             );
@@ -56,7 +56,7 @@ _.extend(ActiveStore.prototype, Store.prototype, {
             fetchRemote(this.getURL(id), function(json) {
                 var data;
                 if (json) {
-                    if (DEBUG) {
+                    if (process.env.NODE_ENV !== 'production') {
                         if (json.store !== store.name) {
                             console.warn(
                                 "ActiveStore instance `" + store.name + "` " +
