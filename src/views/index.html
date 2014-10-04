@@ -18,7 +18,7 @@
 	<body>
 		{% block header %}
 		    {% set props = { path: path, data: data } %}
-			{% set tagprops = { tag: "div", id: "main" } %}
+			{% set tagprops = { tag: "div", id: "content" } %}
 			{% react "./Router" with props in tagprops %}
 		{% endblock %}
 

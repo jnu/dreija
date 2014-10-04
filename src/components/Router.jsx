@@ -12,7 +12,7 @@ var Locations = Router.Locations;
 var NotFound = Router.NotFound;
 
 // components
-var Layout = require('./ui/static/Layout');
+var Layout = require('./Layout');
 var Home = require('./Home');
 var NotFoundPage = require('./NotFound');
 var Post = require('./Post');

@@ -165,7 +165,7 @@ renderer = function *(next) {
 // -- Install Middleware --------------------------------------------------- //
 
 app.use(requestLogger());
-app.use(serve('.'));
+app.use(serve(__dirname));
 app.use(mount('/v1', v1Middleware));
 app.use(renderer);
 

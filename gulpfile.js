@@ -25,7 +25,8 @@ var BUNDLE_NAME = 'blog-app.' + (PROD ? 'min' : 'dev') + '.js';
 var SRC_DIR = './src';
 var SRC_JS = SRC_DIR + '/**/*.js';
 var SRC_JSX = SRC_JS + 'x';
-var SRC_LESS = SRC_DIR + '/styles/*.less';
+var SRC_LESS_BUNDLES = SRC_DIR + '/styles/*.less';
+var SRC_LESS_MODULES = SRC_DIR + '/styles/**/*.less';
 var SRC_HTML = SRC_DIR + '/**/*.html';
 var SRC_PNG = SRC_DIR + '/**/*.png';
 var SRC_BUNDLE = SRC_DIR + '/main.js';
@@ -86,7 +87,7 @@ gulp.task('jsx', function() {
 });
 
 gulp.task('less:dev', function() {
-    gulp.src(SRC_LESS)
+    gulp.src(SRC_LESS_BUNDLES)
         .pipe(sourcemaps.init())
         .pipe(less({ compress: true }))
         .pipe(sourcemaps.write())
@@ -97,10 +98,6 @@ gulp.task('bundle:dev', function() {
     var b = createBrowserify();
     b.add(SRC_BUNDLE);
     useBrowserify(b);
-});
-
-gulp.task('watch:server', ['server:start'], function() {
-    gulp.watch([SERVER], server.restart);
 });
 
 gulp.task('watch:bundle', function() {
@@ -116,26 +113,16 @@ gulp.task('watch:bundle', function() {
     rebundle();
 });
 
-gulp.task('watch:jsx', function() {
-    gulp.watch(SRC_JSX, ['jsx']);
-});
-
-gulp.task('watch:copy', function() {
-    gulp.watch(SRC_TO_COPY, ['copy:dev']);
-});
-
-gulp.task('watch:less', function() {
-    gulp.watch(SRC_LESS, ['less:dev']);
-});
 
 // High-level tasks
 gulp.task('build:dev', ['bundle:dev', 'copy:dev', 'less:dev', 'jsx']);
 gulp.task('watch', [
-    'build:dev',
-    'watch:server',
-    'watch:copy',
-    'watch:less',
-    'watch:bundle',
-    'watch:jsx'
-]);
+        'watch:bundle',
+        'server:start'
+    ], function() {
+        gulp.watch(SRC_JSX, ['jsx']);
+        gulp.watch(SRC_TO_COPY, ['copy:dev']);
+        gulp.watch(SRC_LESS_MODULES, ['less:dev']);
+        gulp.watch([SERVER], server.restart);
+    });
 

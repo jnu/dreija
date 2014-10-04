@@ -5,12 +5,14 @@
 'use strict';
 
 var Promise = require('bluebird').Promise;
+var sleep = require('sleep');
 
 var BlogResource = {
 
     getPostById: function() {
         var id = this.params.id;
         return new Promise(function(resolve) {
+            sleep.sleep(1);
             resolve({
                 id: id,
                 title: "title: " + id,
