@@ -55,6 +55,7 @@ var BlogClient = {
                     url: url,
                     type: 'json',
                     success: function(resp) {
+                        // XXX: Caching should be done by listening to dispatcher LOAD_SUCCESS action?
                         _local[url] = resp;
                         success(_local);
                     },
