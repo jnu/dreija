@@ -26,41 +26,51 @@ function defer(fn) {
 
 var BlogClient = {
 
-    getPostByIdImmediately: function(id) {
-        var url = getByIdURL('post', id);
-        return _local[url] || {};
+    /**
+     * Check if a post is fully loaded locally
+     * @param  {String} id Post ID
+     * @return {Boolean}   Whether post is loaded
+     */
+    postIsFullyLoaded: function(id) {
+        var p = _local[id];
+        return !!p && ('title' in p) && ('content' in p);
     },
 
     /**
-     * Get a post by ID. Caches internally.
+     * Get a post by ID. Caches internally. If callbacks are provided, function
+     * will execute asynchronously, otherwise it will return immediately.
      * @param  {String}   id      Post ID
-     * @param  {Function} success Success callback
-     * @param  {Function} fail    Error callback
+     * @param  {Function} [success] Success callback
+     * @param  {Function} [fail]    Error callback
      */
     getPostById: function(id, success, fail) {
         var url = getByIdURL('post', id);
-        if (_local[url]) {
-            defer(success, _local[url]);
-        } else if (reqwest) {
-            reqwest({
-                url: url,
-                type: 'json',
-                success: function(resp) {
-                    _local[url] = resp;
-                    success(_local);
-                },
-                error: function(err) {
-                    fail(err);
+        fail = fail || function() {};
+
+        if (success) {
+            if (_local[url]) {
+                defer(success, _local[url]);
+            } else if (reqwest) {
+                reqwest({
+                    url: url,
+                    type: 'json',
+                    success: function(resp) {
+                        _local[url] = resp;
+                        success(_local);
+                    },
+                    error: fail
+                });
+            } else {
+                if (process.env.NODE_ENV !== 'production') {
+                    console.warn(
+                        "Don't know how to access `" + url + "` in this " +
+                        "environment. " + JSON.stringify(_local)
+                    );
                 }
-            });
-        } else {
-            if (process.env.NODE_ENV !== 'production') {
-                console.warn(
-                    "Don't know how to access `" + url + "` in this " +
-                    "environment. " + JSON.stringify(_local)
-                );
+                fail({ content: "Can't access post `" + id + "`" });
             }
-            fail({ content: "Can't access post `" + id + "`" });
+        } else {
+            return _local[url] || {};
         }
     },
 

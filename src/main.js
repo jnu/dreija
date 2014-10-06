@@ -20,8 +20,7 @@ var Blog = {
             var cls = node.getAttribute('data-react-class');
             var strProps = node.getAttribute('data-react-props');
             var props = strProps && JSON.parse(strProps);
-            var path = './components/' + cls;
-            var Cmp = require(path.replace('/./', '/'));
+            var Cmp = require('./components/' + cls);
 
             var strPreload = node.getAttribute('data-preload');
             var preload = strPreload && JSON.parse(strPreload);

@@ -136,6 +136,7 @@ renderer = function *(next) {
 
         logger.info("Initial data compositing for %s: %d ms ", path, time);
 
+        logger.info("PRELOADING" + JSON.stringify(data) + " for " + path)
         BlogClient.preload(path, data);
         props = { path: path };
         html = layout({
