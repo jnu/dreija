@@ -5,32 +5,17 @@
 'use strict';
 
 var React = require('react');
-var Link = require('react-router-component').Link;
-var ajax = require('../util/ajax');
-
-function setReadyStatus(status) {
-    /* jshint validthis: true */
-    if (this.isMounted()) {
-        this.setState({ ready: status });
-    }
-}
+var Link = require('./Link');
 
 var Layout = React.createClass({
 
-    getInitialState: function() {
-        return {
-            ready: true
-        };
-    },
-
-    componentWillMount: function() {
-        ajax.on('start', setReadyStatus.bind(this, false));
-        ajax.on('end', setReadyStatus.bind(this, true));
+    propTypes: {
+        ready: React.PropTypes.bool
     },
 
     render: function() {
-        var closeCls = 'face close- ' + (this.state.ready ? 'hide' : '');
-        var openCls = 'face open- ' + (this.state.ready ? '' : 'hide');
+        var closeCls = 'face close- ' + (this.props.ready ? 'hide' : '');
+        var openCls = 'face open- ' + (this.props.ready ? '' : 'hide');
 
         return (
             <div id="layout">
@@ -42,10 +27,10 @@ var Layout = React.createClass({
                     </section>
                     <section id="right">
                         <nav>
-                            <Link href="/post/foo" global={true}>
+                            <Link href="/post/foo" local={true}>
                                 Foo Post
                             </Link>
-                            <Link href="/post/bar" global={true}>
+                            <Link href="/post/bar" local={true}>
                                 Bar Post
                             </Link>
                         </nav>

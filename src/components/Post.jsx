@@ -6,6 +6,7 @@
 
 var React = require('react');
 var PostStore = require('../stores/PostStore');
+var BlogActions = require('../actions/BlogActions');
 
 var Post = React.createClass({
 
@@ -14,25 +15,39 @@ var Post = React.createClass({
     },
 
     getInitialState: function() {
-        return {
-            title: "",
-            content: ""
-        };
+        return PostStore.getCurrentPost();
     },
 
     componentWillMount: function() {
-        var cmp = this;
+        BlogActions.loadPost(this.props.id);
+    },
 
-        PostStore.get(this.props.id, function(post) {
-            cmp.setState(post || {});
-        });
+    componentWillReceiveProps: function(nextProps) {
+        BlogActions.loadPost(nextProps.id);
+    },
+
+    componentDidMount: function() {
+        PostStore.addChangeListener(this._onChange);
+    },
+
+    componentWillUnmount: function() {
+        PostStore.removeChangeListener(this._onChange);
+    },
+
+    _onChange: function() {
+        this.setState(PostStore.getCurrentPost());
     },
 
     render: function() {
+        var loading = !!this.state.loading;
+
         return (
             <div className="post-container">
-                <h1>{this.state.title}</h1>
-                <div>{this.state.content}</div>
+                <h1>
+                    {loading ? '' : this.state.title}</h1>
+                <div>
+                    {loading ? 'loading ...' : this.state.content}
+                </div>
             </div>
         );
     }

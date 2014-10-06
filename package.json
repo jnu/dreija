@@ -35,9 +35,7 @@
   "dependencies": {
     "react": "~0.11.2",
     "underscore": "~1.6.0",
-    "swig-react": "git://github.com/jnu/swig-react.git#v0.0.2",
     "koa": "~0.11.0",
-    "koa-swig": "git://github.com/jnu/koa-swig.git#master",
     "koa-static": "~1.4.7",
     "bluebird": "~2.3.2",
     "react-async": "~1.0.2",
@@ -49,6 +47,8 @@
     "tracer": "~0.7.3",
     "purecss": "~0.5.0",
     "node-event-emitter": "0.0.1",
-    "utils-merge": "~1.0.0"
+    "reqwest": "~1.1.2",
+    "dot": "~1.0.2",
+    "flux": "~2.0.1"
   }
 }

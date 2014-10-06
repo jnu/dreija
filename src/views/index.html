@@ -4,30 +4,22 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<!--<meta name="description" content="">-->
 		<meta property='og:image' content='http://joenoodles.com/img/jnlogo.png' />
-		<meta property='og:title' content='{{ title }}' />
-		<title>{{ title }}</title>
+		<meta property='og:title' content='{{= it.title }}' />
+		<title>{{= it.title }}</title>
 		<!-- <link rel='image_src' href='/img/jnlogo.png'/> -->
 		<link rel="stylesheet" href="/blog-app.css" />
-		{% block js %}
-			{% if env == 'dev' %}
-				<script type="text/javascript">
-				window.DEBUG = true;
-				</script>
-			{% endif %}
-			<script type="text/javascript" src="/blog-app.js"></script>
-		{% endblock %}
+		{{? it.debug }}
+			<script type="text/javascript">window.DEBUG = true;</script>
+	    {{?}}
+		<script type="text/javascript" src="/blog-app.js"></script>
 	</head>
 	<body>
-		{% block header %}
-		    {% set props = { path: path, data: data } %}
-			{% set tagprops = { tag: "div", id: "content" } %}
-			{% react "./Router" with props in tagprops %}
-		{% endblock %}
-
-		{% block init %}
-			<script type="text/javascript">
-				Blog.start();
-			</script>
-		{% endblock %}
+		<div
+			data-react-class='./Router'
+			data-react-props='{{= it.props }}'
+			data-preload='{{= it.preload }}'>
+			{{= it.react }}
+		</div>
+		<script type="text/javascript">Blog.start();</script>
  	</body>
  </html>

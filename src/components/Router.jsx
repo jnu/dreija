@@ -2,6 +2,7 @@
  * Router - Isomorphic on client and server
  * @jsx React.DOM
  */
+/* jshint browser: true */
 
 'use strict';
 
@@ -15,8 +16,6 @@ var Home = require('./Home');
 var NotFound = require('./NotFound');
 var Post = require('./Post');
 
-// Stores
-var PostStore = require('../stores/PostStore');
 
 // Create a router that renders components inside the custom Layout component.
 // This isn't technically a part of the library's custom API, so we have to
@@ -26,42 +25,22 @@ var Pages = Router.createRouter('Pages', Layout);
 var Page = Route.Route;
 var NotFoundPage = Route.NotFound;
 
-var stores = {
-    'PostStore': PostStore
-};
-
 
 var AppRouter = React.createClass({
 
     propTypes: {
-        path: React.PropTypes.string,
-        data: React.PropTypes.object
+        path: React.PropTypes.string
     },
 
-    componentWillMount: function() {
-        var data = this.props.data;
-        var store;
-        var key;
-
-        if (data) {
-            for (key in data) {
-                if (data.hasOwnProperty(key)) {
-                    store = stores[key];
-                    if (store) {
-                        stores[key].reset(data[key]);
-                    } else {
-                        if (process.env.NODE_ENV !== 'production') {
-                            console.warn("Can't inflate store: " + key);
-                        }
-                    }
-                }
-            }
-        }
+    getInitialState: function() {
+        return {
+            path: this.props.path
+        };
     },
 
     render: function() {
         return (
-            <Pages path={this.props.path}>
+            <Pages path={this.state.path} ref="router">
                 <Page path="/" handler={Home} />
                 <Page path="/post/:id" handler={Post} />
                 <NotFoundPage handler={NotFound} />

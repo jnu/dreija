@@ -2,7 +2,7 @@
 
 // Dependencies
 
-var merge = require('utils-merge');
+var merge = require('react/lib/merge');
 var gulp = require('gulp');
 var del = require('del');
 var runSequence = require('run-sequence');

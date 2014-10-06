@@ -5,30 +5,36 @@
 'use strict';
 
 // util
-var _ = require('underscore');
 var path = require('path');
 var Promise = require('bluebird').Promise;
 var logger = require('tracer').colorConsole();
+var fs = require('fs');
+var dot = require('dot');
 
 // koa
 var koa = require('koa');
 var serve = require('koa-static');
-var render = require('koa-swig');
 var requestLogger = require('koa-logger');
 var mount = require('koa-mount');
 var Router = require('koa-router');
 
-// swig extensions
-var reactSwig = require('swig-react');
+// react
+var React = require('react');
+var MainCmp = require('./components/Router');
 
 // resources
 var Blog = require('./BlogResource');
+var BlogClient = require('./util/BlogClient');
 
 
 // -- Init ----------------------------------------------------------------- //
 
 var app = koa();
 var DEV = process.env.NODE_ENV === 'development';
+var layoutStr = fs.readFileSync(
+    path.join(__dirname, './views/index.html'), 'utf8'
+);
+var layout = dot.template(layoutStr);
 var renderer;
 var v1;
 var v1Middleware;
@@ -37,35 +43,18 @@ function *$noop() {
     yield null;
 }
 
-// -- Renderer ------------------------------------------------------------- //
-
-render(app, {
-    root: path.join(__dirname, 'views'),
-    autoescape: true,
-    cache: 'memory',
-    ext: 'html',
-    tags: { react: reactSwig.tag },
-    extensions: { react: reactSwig.extension },
-    opts: {
-        reactComponentRoot: path.join(__dirname, 'components')
-    }
-});
-
 
 // -- API ------------------------------------------------------------------ //
 
-function APIAccessorFactory(targetStore, getter) {
+function APIAccessorFactory(getter) {
     return function *accessor() {
         var start = new Date();
         var data = yield getter.call(this);
         var ms = new Date() - start;
 
-        logger.info("API Lookup for %s in %d ms", targetStore, ms);
+        logger.info("API Lookup in %d ms", ms);
 
-        yield (this.body = {
-            store: targetStore,
-            data: _.isArray(data) ? data : [data]
-        });
+        yield (this.body = data);
     };
 }
 
@@ -73,12 +62,12 @@ v1 = new Router();
 
 v1.get(
     '/post/:id',
-    APIAccessorFactory('PostStore', Blog.getPostById)
+    APIAccessorFactory(Blog.getPostById)
 );
 
 v1.get(
     '/category/:id',
-    APIAccessorFactory('PostStore', Blog.getPostByCategory)
+    APIAccessorFactory(Blog.getPostByCategory)
 );
 
 v1Middleware = v1.middleware();
@@ -91,7 +80,6 @@ function getInitialData(path) {
                 method: 'GET'
             }, $noop());
 
-            var output = {};
             var ret;
             var newVal;
 
@@ -116,10 +104,7 @@ function getInitialData(path) {
                         }, 0);
                     }
                 } else {
-                    if (val) {
-                        output[val.store] = val.data;
-                    }
-                    resolve(output);
+                    resolve(val);
                 }
             })();
         } catch (err) {
@@ -141,24 +126,34 @@ function isApiRequest(path) {
 
 renderer = function *(next) {
     var path = this.path;
+    var start, data, time, html, props;
 
     if (!isStatic(path) && !isApiRequest(path)) {
 
-        var start = new Date();
-        var data = yield getInitialData(path);
-        var time = new Date() - start;
+        start = new Date();
+        data = yield getInitialData(path);
+        time = new Date() - start;
 
         logger.info("Initial data compositing for %s: %d ms ", path, time);
 
-        yield this.render('index', {
-            env: DEV ? 'dev' : 'min',
-            title: 'Title',
-            path: path,
-            data: data
+        BlogClient.preload(path, data);
+        props = { path: path };
+        html = layout({
+            debug: DEV,
+            title: 'title',
+            props: JSON.stringify(props),
+            react: React.renderComponentToString(MainCmp(props)),
+            preload: JSON.stringify({
+                data: data,
+                url: path
+            })
         });
-    } else {
-        yield next;
+        BlogClient.clearCache();
+
+        this.body = html;
     }
+
+    yield next;
 };
 
 

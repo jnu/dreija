@@ -6,47 +6,45 @@
 'use strict';
 
 var React = require('react');
-var PostStore = require('./stores/PostStore');
+var BlogClient = require('./util/BlogClient');
 // XXX: need to include here so browserify bundles dependencies. Is there a
 // better way of doing this?
 require('./components/Router');
 
-module.exports = {
-
-    _cmp: [],
-
-    _stores: {
-        'PostStore': PostStore
-    },
+var Blog = {
 
     start: function() {
         var rootNodes = document.querySelectorAll('[data-react-class]');
 
-        this._cmp = Array.prototype.map.call(rootNodes, function(node) {
+        Array.prototype.map.call(rootNodes, function(node) {
             var cls = node.getAttribute('data-react-class');
             var strProps = node.getAttribute('data-react-props');
-            var props = JSON.parse(strProps);
+            var props = strProps && JSON.parse(strProps);
             var path = './components/' + cls;
             var Cmp = require(path.replace('/./', '/'));
 
-            var activeCmp = Cmp(props);
+            var strPreload = node.getAttribute('data-preload');
+            var preload = strPreload && JSON.parse(strPreload);
+            if (preload) {
+                BlogClient.preload(preload.url, preload.data);
+            }
 
-            React.renderComponent(activeCmp, node);
-
-            return activeCmp;
+            React.renderComponent(Cmp(props), node);
         });
     }
 
-
 };
 
-// Expose some stuff in require mode
+// Expose some stuff in debug mode
 if (process.env.NODE_ENV !== 'production') {
     global.React = React;
-    global.ajax = require('./util/ajax');
+    Blog._client = BlogClient;
+    Blog._PostStore = require('./stores/PostStore');
 } else {
     console.log(
         "Welcome! The full, unminified source of this page is availble at: " +
         "https://github.com/jnu/blogmachine"
     );
 }
+
+module.exports = Blog;
