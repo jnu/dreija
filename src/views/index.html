@@ -14,9 +14,9 @@
 		<script type="text/javascript" src="/blog-app.js"></script>
 	</head>
 	<body>
-		<div data-react-class='Router' data-react-props='{{= it.props }}' data-preload='{{= it.preload }}'>
+		<div data-react-class='Router' data-react-props='{{= it.props }}'>
 			{{= it.react }}
 		</div>
-		<script type="text/javascript">Blog.start();</script>
+		<script type="text/javascript">Blog.start({{= it.action}});</script>
  	</body>
  </html>

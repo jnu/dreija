@@ -5,6 +5,7 @@
 'use strict';
 
 var Promise = require('bluebird').Promise;
+var BlogConstants = require('./constants/BlogConstants');
 var sleep = require('sleep');
 
 var BlogResource = {
@@ -12,11 +13,15 @@ var BlogResource = {
     getPostById: function() {
         var id = this.params.id;
         return new Promise(function(resolve) {
-            sleep.sleep(1);
-            resolve({
+            var data= {
                 id: id,
                 title: "title: " + id,
                 content: "bla bla bla"
+            };
+            sleep.sleep(1);
+            resolve({
+                action: BlogConstants.actions.PRELOAD_POST,
+                args: [id, data]
             });
         });
     },
@@ -24,10 +29,15 @@ var BlogResource = {
     getPostByCategory: function() {
         var cat = this.params.id;
         return new Promise(function(resolve) {
-            resolve({
+            var data = {
                 id: 'foo-id',
                 title: "Post in category: " + cat,
                 content: "bla bla bla bla bla"
+            };
+
+            resolve({
+                action: BlogConstants.actions.PRELOAD_POST,
+                args: ['foo-id',  data]
             });
         });
     }

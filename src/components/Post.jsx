@@ -18,20 +18,21 @@ var Post = React.createClass({
         return PostStore.getCurrentPost();
     },
 
-    componentWillMount: function() {
-        BlogActions.loadPost(this.props.id);
-    },
-
     componentWillReceiveProps: function(nextProps) {
         BlogActions.loadPost(nextProps.id);
     },
 
     componentDidMount: function() {
         PostStore.addChangeListener(this._onChange);
+        BlogActions.loadPost(this.props.id);
     },
 
     componentWillUnmount: function() {
         PostStore.removeChangeListener(this._onChange);
+    },
+
+    shouldComponentUpdate: function(nextProps, nextState) {
+        return nextState !== this.state;
     },
 
     _onChange: function() {

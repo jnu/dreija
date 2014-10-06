@@ -24,7 +24,7 @@ var MainCmp = require('./components/Router');
 
 // resources
 var Blog = require('./BlogResource');
-var BlogClient = require('./util/BlogClient');
+var BlogActions = require('./actions/BlogActions');
 
 
 // -- Init ----------------------------------------------------------------- //
@@ -126,30 +126,27 @@ function isApiRequest(path) {
 
 renderer = function *(next) {
     var path = this.path;
-    var start, data, time, html, props;
+    var start, action, time, html, props;
 
     if (!isStatic(path) && !isApiRequest(path)) {
 
         start = new Date();
-        data = yield getInitialData(path);
+        action = yield getInitialData(path);
         time = new Date() - start;
 
         logger.info("Initial data compositing for %s: %d ms ", path, time);
 
-        logger.info("PRELOADING" + JSON.stringify(data) + " for " + path)
-        BlogClient.preload(path, data);
+        // Perform initial action to set up data layer
+        BlogActions.invoke(action);
+
         props = { path: path };
         html = layout({
             debug: DEV,
             title: 'title',
             props: JSON.stringify(props),
             react: React.renderComponentToString(MainCmp(props)),
-            preload: JSON.stringify({
-                data: data,
-                url: path
-            })
+            action: JSON.stringify(action)
         });
-        BlogClient.clearCache();
 
         this.body = html;
     }

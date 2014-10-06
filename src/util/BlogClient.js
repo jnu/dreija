@@ -83,6 +83,10 @@ var BlogClient = {
         _local['/' + version + url] = data;
     },
 
+    preloadPost: function(id, data) {
+        this.preload('/post/' + id, data);
+    },
+
     /**
      * Clear the local cache
      */
