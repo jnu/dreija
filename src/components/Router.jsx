@@ -32,15 +32,9 @@ var AppRouter = React.createClass({
         path: React.PropTypes.string
     },
 
-    getInitialState: function() {
-        return {
-            path: this.props.path
-        };
-    },
-
     render: function() {
         return (
-            <Pages path={this.state.path} ref="router">
+            <Pages path={this.props.path}>
                 <Page path="/" handler={Home} />
                 <Page path="/post/:id" handler={Post} />
                 <NotFoundPage handler={NotFound} />

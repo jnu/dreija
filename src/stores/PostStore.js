@@ -10,12 +10,17 @@ var BlogConstants = require('../constants/BlogConstants');
 var BlogDispatcher = require('../dispatcher/BlogDispatcher');
 
 var CHANGE_EVENT = 'change_event';
-var _post = {};
+var EMPTY_POST = {};
+var _post = EMPTY_POST;
 
 var PostStore = merge(EventEmitter.prototype, {
 
     getCurrentPost: function() {
         return _post;
+    },
+
+    storeIsReady: function() {
+        return _post !== EMPTY_POST;
     },
 
     addChangeListener: function(callback) {
@@ -37,6 +42,9 @@ PostStore.dispatchToken = BlogDispatcher.register(function(payload) {
 
     switch(action.type) {
         case BlogConstants.LOAD_POST:
+            _post = EMPTY_POST;
+            break;
+
         case BlogConstants.LOAD_POST_SUCCESS:
             _post = action.data;
             break;

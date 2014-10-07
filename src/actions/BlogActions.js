@@ -7,6 +7,7 @@
 var BlogConstants = require('../constants/BlogConstants');
 var BlogDispatcher = require('../dispatcher/BlogDispatcher');
 var BlogClient = require('../util/BlogClient');
+var defer = require('../util/defer');
 
 /**
  * @typedef Action
@@ -41,6 +42,7 @@ var BlogActions = {
 
 };
 
+
 /**
  * Preload data for the given post
  * @param  {String} id   Post ID
@@ -64,7 +66,7 @@ BlogActions[BlogConstants.actions.LOAD_POST] = function(id) {
     BlogDispatcher.handleViewAction({
         type: BlogConstants.LOAD_POST,
         id: id,
-        data: BlogClient.getPostById(id)
+        data: null
     });
 
     // Execute server request if post needs to update
@@ -84,6 +86,18 @@ BlogActions[BlogConstants.actions.LOAD_POST] = function(id) {
                     id: id,
                     data: err
                 });
+            }
+        );
+    }
+    // Otherwise update post store from local cache
+    else {
+        defer.call(
+            BlogDispatcher,
+            BlogDispatcher.handleViewAction,
+            {
+                type: BlogConstants.LOAD_POST_SUCCESS,
+                id: id,
+                data: BlogClient.getPostById(id)
             }
         );
     }

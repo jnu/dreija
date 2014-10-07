@@ -24,6 +24,7 @@ var MainCmp = require('./components/Router');
 
 // resources
 var Blog = require('./BlogResource');
+var BlogConstants = require('./constants/BlogConstants');
 var BlogActions = require('./actions/BlogActions');
 
 
@@ -113,6 +114,21 @@ function getInitialData(path) {
     });
 }
 
+function getInitialDataAction(path, data) {
+    var action;
+    var args;
+
+    if (/^\/post\//.test(path)) {
+        action = BlogConstants.actions.PRELOAD_POST;
+        args = [data.id, data];
+    }
+
+    return action && args && {
+        action: action,
+        args: args
+    };
+}
+
 
 // -- Renderer ------------------------------------------------------------- //
 
@@ -126,26 +142,28 @@ function isApiRequest(path) {
 
 renderer = function *(next) {
     var path = this.path;
-    var start, action, time, html, props;
+    var start, action, time, html, initialData, props;
 
     if (!isStatic(path) && !isApiRequest(path)) {
-
         start = new Date();
-        action = yield getInitialData(path);
+        initialData = yield getInitialData(path);
         time = new Date() - start;
+
+        if (initialData) {
+            action = getInitialDataAction(path, initialData);
+            BlogActions.invoke(action);
+        }
 
         logger.info("Initial data compositing for %s: %d ms ", path, time);
 
-        // Perform initial action to set up data layer
-        BlogActions.invoke(action);
-
         props = { path: path };
+
         html = layout({
             debug: DEV,
             title: 'title',
             props: JSON.stringify(props),
             react: React.renderComponentToString(MainCmp(props)),
-            action: JSON.stringify(action)
+            actions: JSON.stringify(action)
         });
 
         this.body = html;
