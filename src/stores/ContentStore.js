@@ -5,7 +5,7 @@
 'use strict';
 
 var merge = require('react/lib/merge');
-var EventEmitter = require('node-event-emitter').EventEmitter;
+var EventEmitter = require('events').EventEmitter;
 var BlogConstants = require('../constants/BlogConstants');
 var BlogDispatcher = require('../dispatcher/BlogDispatcher');
 
@@ -13,7 +13,7 @@ var CHANGE_EVENT = 'change_event';
 var EMPTY_POST = {};
 var _post = EMPTY_POST;
 
-var PostStore = merge(EventEmitter.prototype, {
+var ContentStore = merge(EventEmitter.prototype, {
 
     getCurrentPost: function() {
         return _post;
@@ -37,7 +37,7 @@ var PostStore = merge(EventEmitter.prototype, {
 
 });
 
-PostStore.dispatchToken = BlogDispatcher.register(function(payload) {
+ContentStore.dispatchToken = BlogDispatcher.register(function(payload) {
     var action = payload.action;
 
     switch(action.type) {
@@ -60,9 +60,9 @@ PostStore.dispatchToken = BlogDispatcher.register(function(payload) {
             return true;
     }
 
-    PostStore.emitChange();
+    ContentStore.emitChange();
 
     return true;
 });
 
-module.exports = PostStore;
+module.exports = ContentStore;

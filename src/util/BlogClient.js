@@ -4,13 +4,12 @@
 
 'use strict';
 
+var cache = require('./cache');
 var reqwest;
 if (typeof window !== 'undefined') {
     reqwest = require('reqwest');
 }
 
-// XXX: Could use a more performant structure
-var _local = {};
 var version = 'v1';
 
 function getByIdURL(base, id) {
@@ -32,7 +31,7 @@ var BlogClient = {
      * @return {Boolean}   Whether post is loaded
      */
     postIsFullyLoaded: function(id) {
-        var p = _local[id];
+        var p = cache.get(id, false);
         return !!p && ('title' in p) && ('content' in p);
     },
 
@@ -47,16 +46,18 @@ var BlogClient = {
         var url = getByIdURL('post', id);
         fail = fail || function() {};
 
+        var empty = {};
+        var content = cache.get(url, empty);
+
         if (success) {
-            if (_local[url]) {
-                defer(success, _local[url]);
+            if (content !== empty) {
+                defer(success, content);
             } else if (reqwest) {
                 reqwest({
                     url: url,
                     type: 'json',
                     success: function(resp) {
-                        // XXX: Caching should be done by listening to dispatcher LOAD_SUCCESS action?
-                        _local[url] = resp;
+                        cache.set(url, resp);
                         success(resp);
                     },
                     error: fail
@@ -65,13 +66,13 @@ var BlogClient = {
                 if (process.env.NODE_ENV !== 'production') {
                     console.warn(
                         "Don't know how to access `" + url + "` in this " +
-                        "environment. " + JSON.stringify(_local)
+                        "environment."
                     );
                 }
                 fail({ content: "Can't access post `" + id + "`" });
             }
         } else {
-            return _local[url] || {};
+            return content;
         }
     },
 
@@ -81,9 +82,15 @@ var BlogClient = {
      * @param  {Object} data Data to cache
      */
     preload: function(url, data) {
-        _local['/' + version + url] = data;
+        var key = '/' + version + url;
+        cache.set(key, data);
     },
 
+    /**
+     * Preload post data into the cache. Delegates to #preload.
+     * @param  {String} id   Post ID
+     * @param  {Object} data Post data
+     */
     preloadPost: function(id, data) {
         this.preload('/post/' + id, data);
     },
@@ -92,13 +99,9 @@ var BlogClient = {
      * Clear the local cache
      */
     clearCache: function() {
-        _local = {};
+        cache.clear();
     }
 
 };
-
-if (process.env.NODE_ENV !== 'production') {
-    BlogClient._local = _local;
-}
 
 module.exports = BlogClient;

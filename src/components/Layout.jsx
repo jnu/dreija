@@ -6,23 +6,23 @@
 
 var React = require('react');
 var Link = require('react-router-component').Link;
-var PostStore = require('../stores/PostStore');
+var ContentStore = require('../stores/ContentStore');
 var defer = require('../util/defer');
 
 var Layout = React.createClass({
 
     getInitialState: function() {
         return {
-            ready: PostStore.storeIsReady()
+            ready: ContentStore.storeIsReady()
         };
     },
 
     componentDidMount: function() {
-        PostStore.addChangeListener(this._onChange);
+        ContentStore.addChangeListener(this._onChange);
     },
 
     componentWillUnmount: function() {
-        PostStore.removeChangeListener(this._onChange);
+        ContentStore.removeChangeListener(this._onChange);
     },
 
     _onChange: function() {
@@ -30,7 +30,7 @@ var Layout = React.createClass({
         defer.call(
             this,
             this.replaceState,
-            { ready: PostStore.storeIsReady() }
+            { ready: ContentStore.storeIsReady() }
         );
     },
 

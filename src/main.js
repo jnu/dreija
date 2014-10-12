@@ -38,7 +38,8 @@ var Blog = {
 if (process.env.NODE_ENV !== 'production') {
     global.React = React;
     Blog._client = require('./util/BlogClient');
-    Blog._PostStore = require('./stores/PostStore');
+    Blog._ContentStore = require('./stores/ContentStore');
+    Blog._cache = require('./util/cache');
 } else {
     console.log(
         "Welcome! The full, unminified source of this page is availble at: " +

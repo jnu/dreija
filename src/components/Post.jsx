@@ -5,7 +5,7 @@
 'use strict';
 
 var React = require('react');
-var PostStore = require('../stores/PostStore');
+var ContentStore = require('../stores/ContentStore');
 var BlogActions = require('../actions/BlogActions');
 
 var Post = React.createClass({
@@ -15,7 +15,7 @@ var Post = React.createClass({
     },
 
     getInitialState: function() {
-        return PostStore.getCurrentPost();
+        return ContentStore.getCurrentPost();
     },
 
     componentWillReceiveProps: function(nextProps) {
@@ -23,12 +23,12 @@ var Post = React.createClass({
     },
 
     componentDidMount: function() {
-        PostStore.addChangeListener(this._onChange);
+        ContentStore.addChangeListener(this._onChange);
         BlogActions.loadPost(this.props.id);
     },
 
     componentWillUnmount: function() {
-        PostStore.removeChangeListener(this._onChange);
+        ContentStore.removeChangeListener(this._onChange);
     },
 
     shouldComponentUpdate: function(nextProps, nextState) {
@@ -36,7 +36,7 @@ var Post = React.createClass({
     },
 
     _onChange: function() {
-        this.setState(PostStore.getCurrentPost());
+        this.setState(ContentStore.getCurrentPost());
     },
 
     render: function() {
