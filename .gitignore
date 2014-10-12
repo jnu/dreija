@@ -1,6 +1,7 @@
 .DS_Store
 *.dump
 *.psd
+*.log
 img/src/
 deprecated/
 node_modules/
