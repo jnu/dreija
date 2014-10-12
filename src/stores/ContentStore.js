@@ -15,7 +15,7 @@ var _post = EMPTY_POST;
 
 var ContentStore = merge(EventEmitter.prototype, {
 
-    getCurrentPost: function() {
+    getCurrentPage: function() {
         return _post;
     },
 
@@ -41,15 +41,15 @@ ContentStore.dispatchToken = BlogDispatcher.register(function(payload) {
     var action = payload.action;
 
     switch(action.type) {
-        case BlogConstants.LOAD_POST:
+        case BlogConstants.LOAD_PAGE:
             _post = EMPTY_POST;
             break;
 
-        case BlogConstants.LOAD_POST_SUCCESS:
+        case BlogConstants.LOAD_PAGE_SUCCESS:
             _post = action.data;
             break;
 
-        case BlogConstants.LOAD_POST_FAIL:
+        case BlogConstants.LOAD_PAGE_FAIL:
             _post = {
                 id: action.id,
                 error: action.data

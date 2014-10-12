@@ -51,7 +51,7 @@ var BlogActions = {
 BlogActions[BlogConstants.actions.PRELOAD_POST] = function(id, data) {
     BlogClient.preloadPost(id, data);
     BlogDispatcher.handleServerAction({
-        type: BlogConstants.LOAD_POST,
+        type: BlogConstants.LOAD_PAGE,
         id: id,
         data: data
     });
@@ -64,7 +64,7 @@ BlogActions[BlogConstants.actions.PRELOAD_POST] = function(id, data) {
 BlogActions[BlogConstants.actions.LOAD_POST] = function(id) {
     // Fill in post immediately, even though it might not be available
     BlogDispatcher.handleViewAction({
-        type: BlogConstants.LOAD_POST,
+        type: BlogConstants.LOAD_PAGE,
         id: id,
         data: null
     });
@@ -75,14 +75,14 @@ BlogActions[BlogConstants.actions.LOAD_POST] = function(id) {
             id,
             function(data) {
                 BlogDispatcher.handleServerAction({
-                    type: BlogConstants.LOAD_POST_SUCCESS,
+                    type: BlogConstants.LOAD_PAGE_SUCCESS,
                     id: id,
                     data: data
                 });
             },
             function(err) {
                 BlogDispatcher.handleServerAction({
-                    type: BlogConstants.LOAD_POST_FAIL,
+                    type: BlogConstants.LOAD_PAGE_FAIL,
                     id: id,
                     data: err
                 });
@@ -95,7 +95,7 @@ BlogActions[BlogConstants.actions.LOAD_POST] = function(id) {
             BlogDispatcher,
             BlogDispatcher.handleViewAction,
             {
-                type: BlogConstants.LOAD_POST_SUCCESS,
+                type: BlogConstants.LOAD_PAGE_SUCCESS,
                 id: id,
                 data: BlogClient.getPostById(id)
             }

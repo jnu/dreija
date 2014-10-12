@@ -5,7 +5,7 @@
 'use strict';
 
 var React = require('react');
-var ContentStore = require('../stores/ContentStore');
+var AsyncContentMixin = require('../mixins/AsyncContentMixin');
 var BlogActions = require('../actions/BlogActions');
 
 var Post = React.createClass({
@@ -14,29 +14,10 @@ var Post = React.createClass({
         id: React.PropTypes.string
     },
 
-    getInitialState: function() {
-        return ContentStore.getCurrentPost();
-    },
+    mixins: [AsyncContentMixin],
 
-    componentWillReceiveProps: function(nextProps) {
-        BlogActions.loadPost(nextProps.id);
-    },
-
-    componentDidMount: function() {
-        ContentStore.addChangeListener(this._onChange);
-        BlogActions.loadPost(this.props.id);
-    },
-
-    componentWillUnmount: function() {
-        ContentStore.removeChangeListener(this._onChange);
-    },
-
-    shouldComponentUpdate: function(nextProps, nextState) {
-        return nextState !== this.state;
-    },
-
-    _onChange: function() {
-        this.setState(ContentStore.getCurrentPost());
+    load: function(props) {
+        BlogActions.loadPost(props.id);
     },
 
     render: function() {
@@ -45,7 +26,8 @@ var Post = React.createClass({
         return (
             <div className="post-container">
                 <h1>
-                    {loading ? '' : this.state.title}</h1>
+                    {loading ? '' : this.state.title}
+                </h1>
                 <div>
                     {loading ? 'loading ...' : this.state.content}
                 </div>

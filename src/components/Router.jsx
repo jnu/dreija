@@ -13,6 +13,7 @@ var Route = require('react-router-component/lib/Route');
 // Local JSX Components
 var Layout = require('./Layout');
 var Home = require('./Home');
+var About = require('./About');
 var NotFound = require('./NotFound');
 var Post = require('./Post');
 
@@ -36,6 +37,7 @@ var AppRouter = React.createClass({
         return (
             <Pages path={this.props.path}>
                 <Page path="/" handler={Home} />
+                <Page path="/about" handler={About} />
                 <Page path="/post/:id" handler={Post} />
                 <NotFoundPage handler={NotFound} />
             </Pages>

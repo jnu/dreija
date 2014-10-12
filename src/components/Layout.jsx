@@ -5,7 +5,7 @@
 'use strict';
 
 var React = require('react');
-var Link = require('react-router-component').Link;
+var Link = require('./Link');
 var ContentStore = require('../stores/ContentStore');
 var defer = require('../util/defer');
 
@@ -34,6 +34,10 @@ var Layout = React.createClass({
         );
     },
 
+    _isReady: function() {
+
+    },
+
     render: function() {
         var closeCls = 'face close- ' + (this.state.ready ? 'hide' : '');
         var openCls = 'face open- ' + (this.state.ready ? '' : 'hide');
@@ -48,14 +52,16 @@ var Layout = React.createClass({
                     </section>
                     <section id="right">
                         <nav>
-                            <Link href="/post/foo">
-                                Foo Post
+                            <Link href="/">
+                                My Thoughts
                             </Link>
-                            <Link href="/post/bar">
-                                Bar Post
+                            <Link href="/about">
+                                Me
                             </Link>
                         </nav>
-                        {this.props.children}
+                        <article>
+                            {this.props.children}
+                        </article>
                     </section>
                 </div>
                 <footer>
