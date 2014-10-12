@@ -4,7 +4,6 @@
 
 'use strict';
 
-
 // TODO: Use local storage? More performant structure?
 var _cache = {};
 
