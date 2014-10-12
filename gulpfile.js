@@ -101,7 +101,10 @@ gulp.task('server:start', function() {
     server.listen({
         path: SERVER,
         execArgv: ['--harmony'],
-        'NODE_ENV': process.env.NODE_ENV
+        env: {
+            'NODE_ENV': process.env.NODE_ENV,
+            'LOADER': process.env.LOADER
+        }
     });
 });
 

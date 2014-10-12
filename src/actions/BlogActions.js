@@ -34,6 +34,10 @@ function asyncActionFactory(loader, checker, ctx) {
         checker = checker.bind(ctx);
     }
 
+    /**
+     * Asynchronous action
+     * @param  {String} id Content identifier
+     */
     return function asyncAction(id) {
         // Fill in post immediately, even though it might not be available
         BlogDispatcher.handleViewAction({
@@ -74,6 +78,32 @@ function asyncActionFactory(loader, checker, ctx) {
                 }
             );
         }
+    };
+}
+
+/**
+ * Create a preloading action
+ * @param  {Function} preload Function to execute to preload
+ * @param  {Object}   [ctx]   Context to execute preloader in
+ * @return {Function}         Preload action
+ */
+function preloadActionFactory(preload, ctx) {
+    if (ctx) {
+        preload = preload.bind(ctx);
+    }
+
+    /**
+     * Action to preload data
+     * @param  {String} id   Content identifier
+     * @param  {mixed}  data Content
+     */
+    return function preloadAction(id, data) {
+        preload(id, data);
+        BlogDispatcher.handleServerAction({
+            type: BlogConstants.LOAD_PAGE,
+            id: id,
+            data: data
+        });
     };
 }
 
@@ -157,16 +187,11 @@ if (process.env.NODE_ENV !== 'production') {
  */
 registerAction(
     BlogConstants.actions.PRELOAD_POST,
-    function(id, data) {
-        BlogClient.preloadPost(id, data);
-        BlogDispatcher.handleServerAction({
-            type: BlogConstants.LOAD_PAGE,
-            id: id,
-            data: data
-        });
-    }
+    preloadActionFactory(
+        BlogClient.preloadPost,
+        BlogClient
+    )
 );
-
 
 /**
  * Load a post by id
@@ -180,5 +205,33 @@ registerAction(
         BlogClient
     )
 );
+
+/**
+ * Preload a static page
+ * @param  {String} id   Content ID
+ * @param  {Object} data Content
+ */
+registerAction(
+    BlogConstants.actions.PRELOAD_STATIC_PAGE,
+    preloadActionFactory(
+        BlogClient.preloadStaticPage,
+        BlogClient
+    )
+);
+
+/**
+ * Load a static page
+ * @param {String} id Content ID
+ */
+registerAction(
+    BlogConstants.actions.LOAD_STATIC_PAGE,
+    asyncActionFactory(
+        BlogClient.getStaticPage,
+        BlogClient.staticPageIsFullyLoaded,
+        BlogClient
+    )
+);
+
+
 
 module.exports = BlogActions;

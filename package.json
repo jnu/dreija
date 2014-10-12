@@ -50,6 +50,6 @@
     "flux": "~2.0.1"
   },
   "scripts": {
-    "start": "killall node ; gulp build ; gulp watch"
+    "start": "killall node ; gulp build && gulp watch"
   }
 }

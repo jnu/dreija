@@ -30,6 +30,11 @@ var BlogActions = require('./actions/BlogActions');
 
 // -- Init ----------------------------------------------------------------- //
 
+// Use stub loder if requested
+if (process.env.NODE_ENV !== 'production' && process.env.LOADER === 'stub') {
+    Blog = Blog._stub;
+}
+
 var app = koa();
 var DEV = process.env.NODE_ENV === 'development';
 var layoutStr = fs.readFileSync(
@@ -60,6 +65,11 @@ function APIAccessorFactory(getter) {
 }
 
 v1 = new Router();
+
+v1.get(
+    '/static/:id',
+    APIAccessorFactory(Blog.getStaticPage)
+);
 
 v1.get(
     '/post/:id',

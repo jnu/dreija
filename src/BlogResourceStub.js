@@ -1,19 +1,22 @@
 /**
- * Blog API
+ * Stub API loader
  */
 
 'use strict';
 
 var Promise = require('bluebird').Promise;
+var sleep = require('sleep');
 
-var BlogResource = {
+var BlogResourceStub = {
+
     getPostById: function() {
         var id = this.params.id;
         return new Promise(function(resolve) {
+            sleep.sleep(1);
             resolve({
                 id: id,
-                title: "",
-                content: "not implemented"
+                title: "title: " + id,
+                content: "bla bla bla"
             });
         });
     },
@@ -22,9 +25,9 @@ var BlogResource = {
         var cat = this.params.id;
         return new Promise(function(resolve) {
             resolve({
-                id: cat,
-                title: "",
-                content: "definitely not implemented"
+                id: 'foo-id',
+                title: "Post in category: " + cat,
+                content: "bla bla bla bla bla"
             });
         });
     },
@@ -32,17 +35,15 @@ var BlogResource = {
     getStaticPage: function() {
         var id = this.params.id;
         return new Promise(function(resolve) {
+            sleep.sleep(1);
             resolve({
                 id: id,
-                title: "",
-                content: "not implemented"
+                title: "Static Page: " + id,
+                content: "Glory me I'm loadin " + id
             });
         });
     }
+
 };
 
-if (process.env.NODE_ENV !== 'production') {
-    BlogResource._stub = require('./BlogResourceStub');
-}
-
-module.exports = BlogResource;
+module.exports = BlogResourceStub;

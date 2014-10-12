@@ -5,6 +5,7 @@
 'use strict';
 
 var cache = require('./cache');
+var defer = require('./defer');
 var reqwest;
 if (typeof window !== 'undefined') {
     reqwest = require('reqwest');
@@ -16,34 +17,28 @@ function getByIdURL(base, id) {
     return ['', version, base, id].join('/');
 }
 
-function defer(fn) {
-    var args = Array.prototype.slice.call(arguments, 1);
-    setTimeout(function() {
-        fn.apply(null, args);
-    }, 0);
-}
 
-var BlogClient = {
+function asyncAccessorFactory(getUrl, ctx) {
+    // Use identity function if url generator was not passed
+    if (!getUrl) {
+        getUrl = function identity() {};
+    }
 
-    /**
-     * Check if a post is fully loaded locally
-     * @param  {String} id Post ID
-     * @return {Boolean}   Whether post is loaded
-     */
-    postIsFullyLoaded: function(id) {
-        var p = cache.get(id, false);
-        return !!p && ('title' in p) && ('content' in p);
-    },
+    // Bind to context if it was passed
+    if (ctx) {
+        getUrl = getUrl.bind(ctx);
+    }
 
     /**
-     * Get a post by ID. Caches internally. If callbacks are provided, function
-     * will execute asynchronously, otherwise it will return immediately.
-     * @param  {String}   id      Post ID
+     * Access remote content. Execute asynchronously if success callback was
+     * not passed, otherwise execute synchronously.
+     * @param  {String}   id        Content identifier
      * @param  {Function} [success] Success callback
-     * @param  {Function} [fail]    Error callback
+     * @param  {Function} [fail]    Fail callback
+     * @return {mixed|undefined}    Content in synchronous path, else undefined
      */
-    getPostById: function(id, success, fail) {
-        var url = getByIdURL('post', id);
+    return function asyncAccessor(id, success, fail) {
+        var url = getUrl(id);
         fail = fail || function() {};
 
         var empty = {};
@@ -69,12 +64,52 @@ var BlogClient = {
                         "environment."
                     );
                 }
-                fail({ content: "Can't access post `" + id + "`" });
+                fail({ content: "Can't access content at `" + url + "`" });
             }
         } else {
             return content;
         }
+    };
+
+}
+
+var BlogClient = {
+
+    /**
+     * Check if a post is fully loaded locally
+     * @param  {String} id Post ID
+     * @return {Boolean}   Whether post is loaded
+     */
+    postIsFullyLoaded: function(id) {
+        var p = cache.get(id, false);
+        return !!p && ('title' in p) && ('content' in p);
     },
+
+    /**
+     * Check whether static page is fully loaded
+     * @param  {String} id Page identifier
+     * @return {Boolean}   Whether page is loaded
+     */
+    staticPageIsFullyLoaded: function(id) {
+        var p = cache.get(id, false);
+        return !!p;
+    },
+
+    /**
+     * Get a post by ID.
+     * @param  {String}   id        Post ID
+     * @param  {Function} [success] Success callback
+     * @param  {Function} [fail]    Error callback
+     */
+    getPostById: asyncAccessorFactory(getByIdURL.bind(null, 'post')),
+
+    /**
+     * Get a static page.
+     * @param  {String}   id        Page ID
+     * @param  {Function} [success] Success callback
+     * @param  {Function} [fail]    Error callback
+     */
+    getStaticPage: asyncAccessorFactory(getByIdURL.bind(null, 'static')),
 
     /**
      * Preload data into the cache.
@@ -93,6 +128,15 @@ var BlogClient = {
      */
     preloadPost: function(id, data) {
         this.preload('/post/' + id, data);
+    },
+
+    /**
+     * Preload static page
+     * @param  {String} id   Page ID
+     * @param  {Object} data Page data
+     */
+    preloadStaticPage: function(id, data) {
+        this.preload('/static/' + id, data);
     },
 
     /**
