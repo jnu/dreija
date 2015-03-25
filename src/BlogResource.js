@@ -5,8 +5,10 @@
 'use strict';
 
 var Promise = require('bluebird').Promise;
+var showdown = require('showdown');
 
 var BlogResource = {
+
     getPostById: function() {
         var id = this.params.id;
         return new Promise(function(resolve) {
@@ -39,6 +41,7 @@ var BlogResource = {
             });
         });
     }
+
 };
 
 if (process.env.NODE_ENV !== 'production') {
