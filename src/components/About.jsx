@@ -1,5 +1,5 @@
 /**
- * @jsx React.DOM
+ * About page
  */
 
 'use strict';
@@ -19,7 +19,7 @@ var About = React.createClass({
     },
 
     render: function() {
-        return (
+        return this.isLoading() ? null : (
             <div className="static-container">
                 <h1>
                     {this.state.title}

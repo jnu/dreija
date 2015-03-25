@@ -20,7 +20,7 @@ var Router = require('koa-router');
 
 // react
 var React = require('react');
-var MainCmp = require('./components/Router');
+var App = require('./components/App');
 
 // resources
 var Blog = require('./BlogResource');
@@ -172,7 +172,9 @@ renderer = function *(next) {
             debug: DEV,
             title: 'title',
             props: JSON.stringify(props),
-            react: React.renderComponentToString(MainCmp(props)),
+            react: React.renderToString(
+                React.createElement(App, props)
+            ),
             actions: JSON.stringify(action)
         });
 

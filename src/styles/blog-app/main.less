@@ -5,7 +5,7 @@
 }
 
 .flex {
-  .flex-display;
+  display: flex;
 }
 
 .hide {
@@ -14,11 +14,25 @@
 
 #layout {
 
+  // Layout Component's Article enter / leave transitions
+  .Layout-article-enter {
+    opacity: 0.01;
+    transition: opacity .5s ease-in;
+  }
+  .Layout-article-enter.Layout-article-enter-active {
+    opacity: 1;
+  }
+  .Layout-article-leave {
+    opacity: 1;
+    transition: opacity .5s ease-in;
+  }
+  .Layout-article-leave.Layout-article-leave-active {
+    opacity: 0.01;
+  }
+
   section#left {
-    width: 375px;
     height: 100vh;
-    .flex(1);
-    .flex-basis(375px)
+    flex: 1 375px;
 
     .face {
       background-repeat: no-repeat;
@@ -26,18 +40,17 @@
       height: 100%;
 
       &.open- {
-        background-image: url(/img/eye_open.png)
+        background-image: url(/img/eye_open.png);
       }
 
       &.close- {
-        background-image: url(/img/eye_close.png)
+        background-image: url(/img/eye_close.png);
       }
     }
   }
 
   section#right {
-    .flex(1);
-    .flex-basis(80%);
+    flex: 1 80%;
     border-right: 10px solid #333;
     min-width: 350px;
 
@@ -65,6 +78,7 @@ nav {
   background-color: #333;
   text-align: right;
   padding-right: 10px;
+  box-shadow: 0px 0px 3px 1px #333;
 
   a {
     display: inline-block;

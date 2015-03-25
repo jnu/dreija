@@ -4,7 +4,7 @@
 
 'use strict';
 
-var merge = require('react/lib/merge');
+var assign = require('react/lib/Object.assign');
 var EventEmitter = require('events').EventEmitter;
 var BlogConstants = require('../constants/BlogConstants');
 var BlogDispatcher = require('../dispatcher/BlogDispatcher');
@@ -13,7 +13,7 @@ var CHANGE_EVENT = 'change_event';
 var EMPTY_POST = {};
 var _post = EMPTY_POST;
 
-var ContentStore = merge(EventEmitter.prototype, {
+var ContentStore = assign({}, EventEmitter.prototype, {
 
     getCurrentPage: function() {
         return _post;

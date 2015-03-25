@@ -1,5 +1,5 @@
 /**
- * @jsx React.DOM
+ * Not Found Page
  */
 
 'use strict';

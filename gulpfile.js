@@ -2,7 +2,7 @@
 
 // Dependencies
 
-var merge = require('react/lib/merge');
+var assign = require('react/lib/Object.assign');
 var gulp = require('gulp');
 var del = require('del');
 var runSequence = require('run-sequence');
@@ -18,6 +18,8 @@ var less = require('gulp-less');
 var sourcemaps = require('gulp-sourcemaps');
 var stylish = require('jshint-stylish');
 var jshint = require('gulp-jshint');
+var autoprefixer = require('autoprefixer-core');
+var postcss = require('gulp-postcss');
 
 
 // Env setup
@@ -54,7 +56,7 @@ function createBrowserify(args) {
         standalone: 'Blog'
     };
 
-    var b = browserify(merge(defaults, args))
+    var b = browserify(assign({}, defaults, args))
         .transform(envify)
         .transform({ 'es6': true }, reactify);
 
@@ -83,6 +85,7 @@ function lessDev() {
     gulp.src(SRC_LESS_BUNDLES)
         .pipe(sourcemaps.init())
         .pipe(less({ compress: true }))
+        .pipe(postcss([ autoprefixer({ browser: ['last 2 version'] }) ]))
         .pipe(sourcemaps.write())
         .pipe(gulp.dest(DEST_DIR));
 }

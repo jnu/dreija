@@ -9,16 +9,14 @@ var React = require('react');
 var BlogActions = require('./actions/BlogActions');
 // XXX: need to include here so browserify bundles dependencies. Is there a
 // better way of doing this?
-require('./components/Router');
+require('./components/App');
 
 var Blog = {
 
     start: function(action) {
         if (action) {
             action = Array.isArray(action) ? action : [action];
-            action.forEach(function(a) {
-                BlogActions.invoke(a);
-            });
+            action.forEach(BlogActions.invoke, BlogActions);
         }
         var rootNodes = document.querySelectorAll('[data-react-class]');
 
@@ -28,7 +26,10 @@ var Blog = {
             var props = strProps && JSON.parse(strProps);
             var Cmp = require('./components/' + cls);
 
-            React.renderComponent(Cmp(props), node);
+            React.render(
+                React.createElement(Cmp, props),
+                node
+            );
         });
     }
 
@@ -42,7 +43,7 @@ if (process.env.NODE_ENV !== 'production') {
     Blog._cache = require('./util/cache');
 } else {
     console.log(
-        "Welcome! The full, unminified source of this page is availble at: " +
+        "Welcome! The full, unminified source of this page is available at: " +
         "https://github.com/jnu/blogmachine"
     );
 }

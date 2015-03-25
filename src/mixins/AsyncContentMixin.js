@@ -31,6 +31,10 @@ var AsyncContentMixin = {
 
     _onChange: function() {
         this.replaceState(ContentStore.getCurrentPage());
+    },
+
+    isLoading: function() {
+        return !ContentStore.storeIsReady();
     }
 
 };

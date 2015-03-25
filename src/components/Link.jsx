@@ -21,8 +21,10 @@ var Link = React.createClass({
 
     render: function() {
         var cls = this.isActive() ? 'active' : '';
-        return this.transferPropsTo(
-            <BaseLink className={cls}>{this.props.children}</BaseLink>
+        return (
+            <BaseLink {...this.props} className={cls}>
+                {this.props.children}
+            </BaseLink>
         );
     }
 

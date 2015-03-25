@@ -1,5 +1,5 @@
 /**
- * @jsx React.DOM
+ * Post page
  */
 
 'use strict';
@@ -16,14 +16,14 @@ var Post = React.createClass({
 
     mixins: [AsyncContentMixin],
 
-    load: function(props) {
-        BlogActions.loadPost(props.id);
+    load: function() {
+        BlogActions.loadPost(this.props.id);
     },
 
     render: function() {
         var loading = !!this.state.loading;
 
-        return (
+        return this.isLoading() ? null :(
             <div className="post-container">
                 <h1>
                     {loading ? '' : this.state.title}

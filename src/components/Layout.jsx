@@ -1,15 +1,20 @@
 /**
- * @jsx React.DOM
+ * Main layout container
  */
 
 'use strict';
 
-var React = require('react');
+var React = require('react/addons');
 var Link = require('./Link');
 var ContentStore = require('../stores/ContentStore');
 var defer = require('../util/defer');
+var ReactCSSTransitionGroup = React.addons.CSSTransitionGroup;
 
 var Layout = React.createClass({
+
+    propTypes: {
+        activePath: React.PropTypes.string
+    },
 
     getInitialState: function() {
         return {
@@ -39,8 +44,9 @@ var Layout = React.createClass({
     },
 
     render: function() {
-        var closeCls = 'face close- ' + (this.state.ready ? 'hide' : '');
-        var openCls = 'face open- ' + (this.state.ready ? '' : 'hide');
+        var isReady = this.state.ready;
+        var closeCls = 'face close- ' + (isReady ? 'hide' : '');
+        var openCls = 'face open- ' + (isReady ? '' : 'hide');
 
         return (
             <div id="layout">
@@ -59,9 +65,11 @@ var Layout = React.createClass({
                                 Me
                             </Link>
                         </nav>
-                        <article>
+                        <ReactCSSTransitionGroup
+                            component="article"
+                            transitionName="Layout-article">
                             {this.props.children}
-                        </article>
+                        </ReactCSSTransitionGroup>
                     </section>
                 </div>
                 <footer>

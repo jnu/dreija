@@ -4,13 +4,13 @@
 
 'use strict';
 
-var copyProperties = require('react/lib/copyProperties');
+var assign = require('react/lib/Object.assign');
 var Dispatcher = require('flux').Dispatcher;
 
 var VIEW_ACTION = 'view_action';
 var SERVER_ACTION = 'server_action';
 
-var BlogDispatcher = copyProperties(new Dispatcher(), {
+var BlogDispatcher = assign(new Dispatcher(), {
 
     handleViewAction: function(action) {
         this.dispatch({
