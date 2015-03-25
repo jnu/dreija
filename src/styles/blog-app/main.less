@@ -1,11 +1,11 @@
 // Main blog app styles
 
-* {
+*, *:before, *:after {
   box-sizing: border-box;
 }
 
 .flex {
-  display: flex;
+  .flex-display;
 }
 
 .hide {
@@ -17,7 +17,8 @@
   section#left {
     width: 375px;
     height: 100vh;
-    flex: 1 375px;
+    .flex(1);
+    .flex-basis(375px)
 
     .face {
       background-repeat: no-repeat;
@@ -35,7 +36,8 @@
   }
 
   section#right {
-    flex: 1 80%;
+    .flex(1);
+    .flex-basis(80%);
     border-right: 10px solid #333;
     min-width: 350px;
 
