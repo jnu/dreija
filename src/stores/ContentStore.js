@@ -55,7 +55,8 @@ ContentStore.dispatchToken = BlogDispatcher.register(function(payload) {
 
     switch (action.type) {
         case BlogConstants.LOAD_PAGE:
-            _content = EMPTY_CONTENT;
+            // Allow for pages to set temporary content
+            _content = action.data || EMPTY_CONTENT;
             _waiting = true;
             break;
 

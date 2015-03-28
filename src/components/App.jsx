@@ -51,10 +51,6 @@ var App = React.createClass({
         ContentStore.removeChangeListener(this.contentDidChange);
     },
 
-    shouldComponentUpdate: function(nextProps, nextState) {
-        return this.state.content !== nextState.content;
-    },
-
     contentDidChange: function() {
         this.setState({
             content: ContentStore.get()

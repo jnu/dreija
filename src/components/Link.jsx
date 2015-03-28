@@ -10,6 +10,7 @@
 var React = require('react');
 var Router = require('react-router-component');
 var BaseLink = Router.Link;
+//var logger = require('../logger');
 
 var Link = React.createClass({
 
@@ -17,7 +18,9 @@ var Link = React.createClass({
 
     render: function() {
         // XXX why doesn't this.getPath() work correctly?
-        var currentPath = this._getNavigable().getEnvironment().path;
+        var env = this._getNavigable().getEnvironment();
+        var currentPath = env.useHistoryApi ? env.path : this.getPath();
+        //logger.debug(env)
         var cls = (currentPath === this.props.href) ? 'active' : '';
         return (
             <BaseLink {...this.props} className={cls}>

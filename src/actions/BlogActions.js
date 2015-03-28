@@ -101,7 +101,7 @@ function preloadActionFactory(preload, ctx) {
     return function preloadAction(id, data) {
         preload(id, data);
         BlogDispatcher.handleServerAction({
-            type: BlogConstants.LOAD_PAGE,
+            type: BlogConstants.LOAD_PAGE_SUCCESS,
             id: id,
             data: data
         });

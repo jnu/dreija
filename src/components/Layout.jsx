@@ -8,7 +8,7 @@ var React = require('react/addons');
 var Link = require('./Link');
 var ContentStore = require('../stores/ContentStore');
 var defer = require('../util/defer');
-var ReactCSSTransitionGroup = React.addons.CSSTransitionGroup;
+var ReactCSSTransitionGroup = 'div'; // React.addons.CSSTransitionGroup;
 
 var Layout = React.createClass({
 
