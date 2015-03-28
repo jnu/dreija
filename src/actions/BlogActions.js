@@ -8,6 +8,7 @@ var BlogConstants = require('../constants/BlogConstants');
 var BlogDispatcher = require('../dispatcher/BlogDispatcher');
 var BlogClient = require('../util/BlogClient');
 var defer = require('../util/defer');
+var logger = require('../util/logger');
 
 
 /**
@@ -142,6 +143,7 @@ var BlogActions = {
         }
 
         if (process.env.NODE_ENV !== 'production') {
+            logger.trace('Invoking action `' + action + '`');
             if (!BlogActions.hasOwnProperty(action)) {
                 throw new Error("Unknown action: " + action);
             }
@@ -160,12 +162,20 @@ var BlogActions = {
  * @param  {Function} fn  Action
  */
 function registerAction(key, fn) {
+    var action = fn;
+
     if (process.env.NODE_ENV !== 'production') {
         if (BlogActions.hasOwnProperty(key)) {
             throw new Error("Tried to re-register action '" + key + "'");
         }
+
+        action = function _actionDebugWrapper() {
+            logger.debug('Executing action `' + key + '` with ', arguments);
+            return fn.apply(this, arguments);
+        };
     }
-    BlogActions[key] = fn;
+
+    BlogActions[key] = action;
 }
 
 if (process.env.NODE_ENV !== 'production') {
@@ -231,7 +241,6 @@ registerAction(
         BlogClient
     )
 );
-
 
 
 module.exports = BlogActions;

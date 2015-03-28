@@ -166,7 +166,10 @@ renderer = function *(next) {
 
         logger.info("Initial data compositing for %s: %d ms ", path, time);
 
-        props = { path: path };
+        props = {
+            path: path,
+            initialContent: initialData
+        };
 
         html = layout({
             debug: DEV,

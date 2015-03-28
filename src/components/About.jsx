@@ -5,27 +5,30 @@
 'use strict';
 
 var React = require('react');
-var AsyncContentMixin = require('../mixins/AsyncContentMixin');
-var BlogActions = require('../actions/BlogActions');
+var BlogConstants = require('../constants/BlogConstants');
 
 var ABOUT_RESOURCE_ID = 'about';
 
 var About = React.createClass({
 
-    mixins: [AsyncContentMixin],
-
-    load: function() {
-        BlogActions.loadStaticPage(ABOUT_RESOURCE_ID);
+    statics: {
+        getContentDescriptor: function() {
+            return {
+                id: ABOUT_RESOURCE_ID,
+                type: BlogConstants.resource.STATIC
+            };
+        }
     },
 
     render: function() {
-        return this.isLoading() ? null : (
+        var content = this.props.content || {};
+        return (
             <div className="static-container">
                 <h1>
-                    {this.state.title}
+                    {content.title}
                 </h1>
                 <div>
-                    {this.state.content}
+                    {content.content}
                 </div>
             </div>
         );

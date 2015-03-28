@@ -15,12 +15,10 @@ var Link = React.createClass({
 
     mixins: [Router.NavigatableMixin],
 
-    isActive: function() {
-        return this.getPath() === this.props.href;
-    },
-
     render: function() {
-        var cls = this.isActive() ? 'active' : '';
+        // XXX why doesn't this.getPath() work correctly?
+        var currentPath = this._getNavigable().getEnvironment().path;
+        var cls = (currentPath === this.props.href) ? 'active' : '';
         return (
             <BaseLink {...this.props} className={cls}>
                 {this.props.children}

@@ -18,7 +18,7 @@ var Layout = React.createClass({
 
     getInitialState: function() {
         return {
-            ready: ContentStore.storeIsReady()
+            ready: ContentStore.isFullyLoaded()
         };
     },
 
@@ -34,19 +34,17 @@ var Layout = React.createClass({
         // Defer to prevent invariant violation
         defer.call(
             this,
-            this.replaceState,
-            { ready: ContentStore.storeIsReady() }
+            this.setState,
+            { ready: ContentStore.isFullyLoaded() }
         );
-    },
-
-    _isReady: function() {
-
     },
 
     render: function() {
         var isReady = this.state.ready;
         var closeCls = 'face close- ' + (isReady ? 'hide' : '');
         var openCls = 'face open- ' + (isReady ? '' : 'hide');
+        var content = this.props.content;
+        var articleId = content && content.id || '__none';
 
         return (
             <div id="layout">
@@ -64,11 +62,19 @@ var Layout = React.createClass({
                             <Link href="/about">
                                 Me
                             </Link>
+                            <Link href="/post/foo">
+                                Foo post
+                            </Link>
+                            <Link href="/post/bar">
+                                Bar post
+                            </Link>
                         </nav>
                         <ReactCSSTransitionGroup
-                            component="article"
+                            component="div"
                             transitionName="Layout-article">
-                            {this.props.children}
+                            <article key={ articleId }>
+                                {this.props.children}
+                            </article>
                         </ReactCSSTransitionGroup>
                     </section>
                 </div>

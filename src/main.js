@@ -38,6 +38,7 @@ var Blog = {
 // Expose some stuff in debug mode
 if (process.env.NODE_ENV !== 'production') {
     global.React = React;
+    global.logger = require('./util/logger');
     Blog._client = require('./util/BlogClient');
     Blog._ContentStore = require('./stores/ContentStore');
     Blog._cache = require('./util/cache');

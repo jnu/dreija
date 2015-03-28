@@ -5,8 +5,7 @@
 'use strict';
 
 var React = require('react');
-var AsyncContentMixin = require('../mixins/AsyncContentMixin');
-var BlogActions = require('../actions/BlogActions');
+var BlogConstants = require('../constants/BlogConstants');
 
 var Post = React.createClass({
 
@@ -14,22 +13,25 @@ var Post = React.createClass({
         id: React.PropTypes.string
     },
 
-    mixins: [AsyncContentMixin],
-
-    load: function() {
-        BlogActions.loadPost(this.props.id);
+    statics: {
+        getContentDescriptor: function(match) {
+            return {
+                id: match.id,
+                type: BlogConstants.resource.POST
+            };
+        }
     },
 
     render: function() {
-        var loading = !!this.state.loading;
+        var content = this.props.content;
 
-        return this.isLoading() ? null :(
+        return (
             <div className="post-container">
                 <h1>
-                    {loading ? '' : this.state.title}
+                    {content.title}
                 </h1>
                 <div>
-                    {loading ? 'loading ...' : this.state.content}
+                    {content.content}
                 </div>
             </div>
         );

@@ -27,9 +27,9 @@ var Pages = React.createClass({
     },
 
     render: function() {
-        // Render the Route's handler
+        // Render the Route's handler, passing down content
         var handler = this.renderRouteHandler({
-
+            content: this.props.content
         });
         // Pass down props (sans component), with the activated path
         var props = assign(

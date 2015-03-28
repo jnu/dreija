@@ -13,7 +13,10 @@ var ExecutionEnvironment  = require('react/lib/ExecutionEnvironment');
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 var canUseDOM = ExecutionEnvironment.canUseDOM;
+var canUseWindow = typeof window !== 'undefined';
 
+// Composite checks
+var canUseConsole = canUseWindow && !!window.console;
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Exports
@@ -29,7 +32,14 @@ var env = {
      * Whether transitions work in this environment / make sense.
      * @type {Boolean}
      */
-    canTransition: canUseDOM
+    canTransition: canUseDOM,
+
+    /**
+     * Whether console is available
+     * XXX might rather have isomorphic logger
+     * @type {Boolean}
+     */
+    hasNativeConsole: canUseConsole
 
 };
 

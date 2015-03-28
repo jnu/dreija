@@ -10,17 +10,30 @@ var BlogConstants = require('../constants/BlogConstants');
 var BlogDispatcher = require('../dispatcher/BlogDispatcher');
 
 var CHANGE_EVENT = 'change_event';
-var EMPTY_POST = {};
-var _post = EMPTY_POST;
+var EMPTY_CONTENT = {};
+var _content = EMPTY_CONTENT;
+var _waiting = false;
 
 var ContentStore = assign({}, EventEmitter.prototype, {
 
-    getCurrentPage: function() {
-        return _post;
+    get: function() {
+        return _content;
     },
 
-    storeIsReady: function() {
-        return _post !== EMPTY_POST;
+    isActiveContent: function(id) {
+        return _content && _content.id === id;
+    },
+
+    isEmpty: function() {
+        return _content === EMPTY_CONTENT;
+    },
+
+    isExpectingData: function() {
+        return _waiting;
+    },
+
+    isFullyLoaded: function() {
+        return !this.isEmpty() && !this.isExpectingData();
     },
 
     addChangeListener: function(callback) {
@@ -40,20 +53,23 @@ var ContentStore = assign({}, EventEmitter.prototype, {
 ContentStore.dispatchToken = BlogDispatcher.register(function(payload) {
     var action = payload.action;
 
-    switch(action.type) {
+    switch (action.type) {
         case BlogConstants.LOAD_PAGE:
-            _post = EMPTY_POST;
+            _content = EMPTY_CONTENT;
+            _waiting = true;
             break;
 
         case BlogConstants.LOAD_PAGE_SUCCESS:
-            _post = action.data;
+            _content = action.data;
+            _waiting = false;
             break;
 
         case BlogConstants.LOAD_PAGE_FAIL:
-            _post = {
+            _content = {
                 id: action.id,
                 error: action.data
             };
+            _waiting = false;
             break;
 
         default:
