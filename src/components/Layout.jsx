@@ -79,7 +79,7 @@ var Layout = React.createClass({
                     </section>
                 </div>
                 <footer>
-                    By Joe Nudell, 2014
+                    By Joe Nudell, 2014-15
                 </footer>
             </div>
         );
