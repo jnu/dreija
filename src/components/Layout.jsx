@@ -9,10 +9,12 @@ var Link = require('./Link');
 var ContentStore = require('../stores/ContentStore');
 var defer = require('../util/defer');
 var VelocityTransitionGroup;
-try {
+var env = require('../env');
+
+if (env.canTransition) {
     VelocityTransitionGroup = require('../../vendor/js/VelocityTransitionGroup');
-} catch (e) {
-    VelocityTransitionGroup = 'span';
+} else {
+    VelocityTransitionGroup = 'div';
 }
 
 var Layout = React.createClass({
@@ -50,14 +52,9 @@ var Layout = React.createClass({
         var openCls = 'face open- ' + (isReady ? '' : 'hide');
         var content = this.props.content;
         var articleId = content && content.id || '__none';
-        var articleDom = (
-            <VelocityTransitionGroup
-                transitionName="slide-forward">
-                <article key={ articleId }>
-                    {this.props.children}
-                </article>
-            </VelocityTransitionGroup>
-        );
+        var TransitionContainer = env.firstRender ?
+            'div' :
+            VelocityTransitionGroup;
 
         return (
             <div id="layout">
@@ -82,7 +79,13 @@ var Layout = React.createClass({
                                 Bar post
                             </Link>
                         </nav>
-                        {articleDom}
+                        <TransitionContainer
+                            component="div"
+                            transitionName="slide-forward">
+                            <article key={ articleId }>
+                                {this.props.children}
+                            </article>
+                        </TransitionContainer>
                     </section>
                 </div>
                 <footer>

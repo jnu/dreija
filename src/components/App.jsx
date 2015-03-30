@@ -16,6 +16,7 @@ var NotFound = require('./NotFound');
 var Post = require('./Post');
 var ContentStore = require('../stores/ContentStore');
 var ContentActionsMixin = require('../mixins/ContentActionsMixin');
+var env = require('../env');
 
 // Router pieces
 var Pages = CustomRouter.Pages;
@@ -45,6 +46,7 @@ var App = React.createClass({
 
     componentDidMount: function() {
         ContentStore.addChangeListener(this.contentDidChange);
+        env.informRendered();
     },
 
     componentWillUnmount: function() {

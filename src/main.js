@@ -42,6 +42,7 @@ if (process.env.NODE_ENV !== 'production') {
     Blog._client = require('./util/BlogClient');
     Blog._ContentStore = require('./stores/ContentStore');
     Blog._cache = require('./util/cache');
+    Blog._env = require('./env');
 } else {
     console.log(
         "Welcome! The full, unminified source of this page is available at: " +

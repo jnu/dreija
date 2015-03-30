@@ -14,6 +14,7 @@ var ExecutionEnvironment  = require('react/lib/ExecutionEnvironment');
 
 var canUseDOM = ExecutionEnvironment.canUseDOM;
 var canUseWindow = typeof window !== 'undefined';
+var hasRendered = false;
 
 // Composite checks
 var canUseConsole = canUseWindow && !!window.console;
@@ -39,8 +40,21 @@ var env = {
      * XXX might rather have isomorphic logger
      * @type {Boolean}
      */
-    hasNativeConsole: canUseConsole
+    hasNativeConsole: canUseConsole,
+
+    /**
+     * Indicate that the App has rendered
+     */
+    informRendered: function() {
+        hasRendered = true;
+    }
 
 };
+
+Object.defineProperty(env, 'firstRender', {
+    get: function() {
+        return !hasRendered;
+    }
+});
 
 module.exports = env;
