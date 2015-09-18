@@ -2,12 +2,10 @@
  * Custom router
  */
 
-'use strict';
-
-var React = require('react');
-var Router = require('react-router-component');
-var Layout = require('./Layout');
-var assign = require('react/lib/Object.assign');
+import React from 'react';
+import Router from 'react-router-component';
+import Layout from './Layout';
+import assign from 'react/lib/Object.assign';
 
 /**
  * Create a router component

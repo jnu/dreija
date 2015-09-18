@@ -2,8 +2,6 @@
  * Environment information
  */
 
-'use strict';
-
 var ExecutionEnvironment  = require('react/lib/ExecutionEnvironment');
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

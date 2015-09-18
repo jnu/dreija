@@ -6,7 +6,6 @@
 
 // util
 var path = require('path');
-var Promise = require('bluebird').Promise;
 var logger = require('tracer').colorConsole();
 var fs = require('fs');
 var dot = require('dot');

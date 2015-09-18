@@ -8,14 +8,7 @@ var React = require('react/addons');
 var Link = require('./Link');
 var ContentStore = require('../stores/ContentStore');
 var defer = require('../util/defer');
-var VelocityTransitionGroup;
 var env = require('../env');
-
-if (env.canTransition) {
-    VelocityTransitionGroup = require('../../vendor/js/VelocityTransitionGroup');
-} else {
-    VelocityTransitionGroup = 'div';
-}
 
 var Layout = React.createClass({
 
@@ -52,9 +45,7 @@ var Layout = React.createClass({
         var openCls = 'face open- ' + (isReady ? '' : 'hide');
         var content = this.props.content;
         var articleId = content && content.id || '__none';
-        var TransitionContainer = env.firstRender ?
-            'div' :
-            VelocityTransitionGroup;
+        var TransitionContainer = 'div';
 
         return (
             <div id="layout">
