@@ -28,4 +28,4 @@ up: $(NODE_MODULES)
 	NODE_PATH=./src/shared/ node ./src/server/app.js
 
 watch: $(NODE_MODULES)
-	$(npm bin)/webpack --watch
+	$(NPM_BIN)/webpack --watch

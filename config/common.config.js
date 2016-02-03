@@ -30,6 +30,11 @@ var config = {
                 test: /\.jsx?$/,
                 exclude: /node_modules/,
                 loader: 'babel?optional[]=runtime&cacheDirectory'
+            },
+            {
+                test: /\.less$/,
+                exclude: /node_modules/,
+                loaders: ['css', 'less']
             }
         ],
         noParse: [/node_modules[\/\\]tracer/]

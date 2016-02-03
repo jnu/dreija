@@ -56,9 +56,7 @@ function fetchContent(contentDescriptor) {
 
 function *getDataForMatchedRoutes(state) {
     var routesNeedingData = state.routes
-        .filter(function(route) {
-            return route.handler.getContentDescriptor;
-        });
+        .filter(route => route.handler.getContentDescriptor);
 
     var data = {};
 
