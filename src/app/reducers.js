@@ -1,3 +1,5 @@
+import { OPEN_POST, OPEN_PAGE } from './constants';
+
 
 const initialState = {
     view: 'post',
@@ -26,3 +28,8 @@ const initialState = {
         }
     ]
 };
+
+
+export default function update(state = initialState, action) {
+
+}
