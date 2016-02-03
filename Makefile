@@ -9,11 +9,11 @@ all: build
 build: shrinkwrap
 	NODE_ENV=production $(NPM BIN)/webpack --bail
 
-shrinkwrap: install
+shrinkwrap: $(NODE_MODULES)
 	npm prune
 	npm shrinkwrap
 
-lint: install
+lint: $(NODE_MODULES)
 	$(NPM_BIN)/eslint  --ext .js,.jsx ./src
 
 clean:
@@ -24,8 +24,8 @@ install:
 	npm install
 	npm prune
 
-up: install
+up: $(NODE_MODULES)
 	NODE_PATH=./src/shared/ node ./src/server/app.js
 
-watch: install
+watch: $(NODE_MODULES)
 	$(npm bin)/webpack --watch
