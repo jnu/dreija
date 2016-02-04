@@ -17,7 +17,7 @@ import {
     syncHistory,
     routeReducer
 } from 'react-router-redux';
-import reducers from './reducers';
+import * as reducers from './reducers';
 
 
 const reducer = combineReducers(Object.assign({}, reducers, {

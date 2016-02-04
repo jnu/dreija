@@ -1,2 +1,9 @@
-export { default as openPost } from './openPost';
-export { default as openPage } from './openPage';
+export {
+    REQUEST_POST, RECEIVE_POST,
+    REQUEST_POSTS_INDEX, RECEIVE_POSTS_INDEX,
+    SELECT_POST
+} from './post';
+export {
+    REQUEST_PAGE, RECEIVE_PAGE,
+    SELECT_PAGE
+} from './page';
