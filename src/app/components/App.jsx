@@ -1,22 +1,38 @@
-import React from 'react';
-import { Link } from 'react-router';
+import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { routeActions } from 'react-router';
+import { fetchIndex } from '../actions';
 
 
-function App({ push, children }) {
-    return (
-        <div>
-            <header>
-                <div>jnu</div>
-                <Link to="/about">About</Link>
-                <Link to="/contact">Contact</Link>
-            </header>
-            <main>
-                <div>{ children }</div>
-            </main>
-        </div>
-    );
+export default class App extends Component {
+
+    constructor(props) {
+        super(props);
+    }
+
+    componentDidMount() {
+        const { dispatch } = this.props;
+        dispatch(fetchIndex());
+    }
+
+    render() {
+        if (this.props.isFetchingIndex) {
+            return (<div>Wait!</div>);
+        }
+        return (
+            <div className='App'>
+                loaded: <pre>{ JSON.stringify(this.props.posts, null, '  ') }</pre>
+            </div>
+        );
+    }
+
+    getPropsFromState(state) {
+        let posts = state.get('data').filter((v, k) => k.get('type') === 'post');
+
+        return {
+            isFetchingIndex: state.get('isFetchingIndex'),
+            posts: posts.toJS() || []
+        };
+    }
 }
 
-export default connect(null, routeActions)(App);
+export default connect(App.getPropsFromState)(App);

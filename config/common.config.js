@@ -2,14 +2,14 @@ var path = require('path');
 var DefinePlugin = require('webpack/lib/DefinePlugin');
 
 
-const APP_ROOT = path.resolve(__dirname, '..', 'src', 'client');
+const APP_ROOT = path.resolve(__dirname, '..', 'src', 'app');
 
 var config = {
 
     context: APP_ROOT,
 
     entry: {
-        client: './main.js'
+        client: './index.js'
     },
 
     output: {

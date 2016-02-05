@@ -1,9 +1,1 @@
-export {
-    REQUEST_POST, RECEIVE_POST,
-    REQUEST_POSTS_INDEX, RECEIVE_POSTS_INDEX,
-    SELECT_POST
-} from './post';
-export {
-    REQUEST_PAGE, RECEIVE_PAGE,
-    SELECT_PAGE
-} from './page';
+export * from './actions';

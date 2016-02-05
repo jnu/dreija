@@ -28,22 +28,13 @@ const initialState = Immutable.fromJS({
             snippet: 'bar',
             created: '2015-01-02',
             content: null,
-            type: 'post'
+            type: 'post',
+            isFetching: false
         }
     }
 });
 
 
-// TODO - easier to use Immutable for this?
-function updateWithRequestPage(state, action) {
-    let { id } = action;
-    return state.mergeDeep({
-        currentId: id,
-        view: PAGE_VIEW,
-        isFetching: true,
-        data: { [id]: { id } }
-    });
-}
 
 
 function updateWithSelectedPage(state, action) {
@@ -65,48 +56,36 @@ function updateWithSelectedPost(state, action) {
 }
 
 
-function updateWithReceivePage(state, action) {
-    let { id, page } = action;
-
-    return state.mergeDeep({
-        isFetching: false,
-        data: { [id]: page }
-    });
-}
-
-
-function updateWithRequestPost(state, action) {
+function updateWithRequestResource(state, action) {
     let { id } = action;
 
     return state.mergeDeep({
-        isFetching: true,
-        data: { [id]: { id } }
+        data: { [id]: { id }, isFetching: true }
     });
 }
 
 
-function updateWithReceivePost(state, action) {
+function updateWithReceiveResource(state, action) {
     let { id, post } = action;
 
     return state.mergeDeep({
-        isFetching: false,
-        data: { [id]: post }
+        data: { [id]: post, isFetching: false }
     });
 }
 
 
-function updateWithRequestPostsIndex(state, action) {
+function updateWithRequestIndex(state, action) {
     return state.mergeDeep({
-        isFetching: true
+        isFetchingIndex: true
     });
 }
 
 
-function updateWithReceivePostsIndex(state, action) {
+function updateWithReceiveIndex(state, action) {
     let { data } = action;
 
     return state.mergeDeep({
-        isFetching: false,
+        isFetchingIndex: false,
         data
     });
 }
@@ -116,17 +95,17 @@ function updateWithReceivePostsIndex(state, action) {
 export default function update(state = initialState, action) {
     switch (action.type) {
         case REQUEST_PAGE:
-            return updateWithRequestPage(state, action);
+            return updateWithRequestResource(state, action);
         case RECEIVE_PAGE:
-            return updateWithReceivePage(state, action);
+            return updateWithReceiveResource(state, action);
         case REQUEST_POST:
-            return updateWithRequestPost(state, action);
+            return updateWithRequestResource(state, action);
         case RECEIVE_POST:
-            return updateWithReceivePost(state, action);
+            return updateWithReceiveResource(state, action);
         case REQUEST_POSTS_INDEX:
-            return updateWithRequestPostsIndex(state, action);
+            return updateWithRequestIndex(state, action);
         case RECEIVE_POSTS_INDEX:
-            return updateWithReceivePostsIndex(state, action);
+            return updateWithReceiveIndex(state, action);
         case SELECT_POST:
             return updateWithSelectedPost(state, action);
         case SELECT_PAGE:
