@@ -2,7 +2,7 @@ var path = require('path');
 var DefinePlugin = require('webpack/lib/DefinePlugin');
 
 
-const APP_ROOT = path.resolve(__dirname, '..', 'src', 'app');
+const APP_ROOT = path.resolve(__dirname, '..', '..', 'src', 'app');
 
 var config = {
 
@@ -13,14 +13,15 @@ var config = {
     },
 
     output: {
-        path: path.resolve(__dirname, '..', 'dist'),
+        path: path.resolve(__dirname, '..', '..', 'dist'),
+        publicPath: 'dist/',
         library: 'JN',
         libraryTarget: 'var'
     },
 
     resolve: {
         root: APP_ROOT,
-        fallback: path.resolve(__dirname, '..', 'src', 'shared'),
+        fallback: path.resolve(__dirname, '..', '..', 'src', 'shared'),
         extensions: ['', '.js', '.jsx']
     },
 

@@ -1,10 +1,10 @@
 var path = require('path');
 var fs = require('fs');
-var UglifyJsPlugin = require('webpack/lib/optimize/UglifyJsPlugin');
 var DefinePlugin = require('webpack/lib/DefinePlugin');
+var BannerPlugin = require('webpack/lib/BannerPlugin');
 
 
-const APP_ROOT = path.resolve(__dirname, '..', 'src', 'server');
+const APP_ROOT = path.resolve(__dirname, '..', '..', 'src', 'server');
 
 // Use CommonJS requires for node modules. Everything else will be bundled.
 const externals = fs.readdirSync('node_modules')
@@ -28,7 +28,7 @@ var config = {
 
     resolve: {
         root: APP_ROOT,
-        fallback: path.resolve(__dirname, '..', 'src', 'shared'),
+        fallback: path.resolve(__dirname, '..', '..', 'src', 'shared'),
         extensions: ['', '.js', '.jsx']
     },
 
@@ -43,7 +43,8 @@ var config = {
     },
 
     output: {
-        path: path.resolve(__dirname, '..', 'dist'),
+        path: path.resolve(__dirname, '..', '..', 'dist'),
+        publicPath: 'dist/',
         filename: '[name].js'
     },
 
@@ -55,13 +56,14 @@ var config = {
             }
         }),
 
-        new UglifyJsPlugin({
-            mangle: {
-                except: ['exports', 'module', 'require']
-            }
-        })
+        new BannerPlugin(
+            'require("source-map-support").install();',
+            { raw: true, entryOnly: false }
+        )
 
     ],
+
+    devtool: 'source-map',
 
     externals: externals
 
