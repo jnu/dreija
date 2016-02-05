@@ -29,7 +29,7 @@ var config = {
             {
                 test: /\.jsx?$/,
                 exclude: /node_modules/,
-                loader: 'babel?optional[]=runtime&cacheDirectory'
+                loader: 'babel?cacheDirectory'
             },
             {
                 test: /\.less$/,
