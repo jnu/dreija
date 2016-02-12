@@ -1,6 +1,9 @@
 var path = require('path');
 var DefinePlugin = require('webpack/lib/DefinePlugin');
+var HtmlWebpackPlugin = require('html-webpack-plugin');
 
+
+console.log(__dirname, __filename)
 
 const APP_ROOT = path.resolve(__dirname, '..', '..', 'src', 'app');
 
@@ -9,12 +12,12 @@ var config = {
     context: APP_ROOT,
 
     entry: {
-        client: './index.js'
+        client: ['./index.js']
     },
 
     output: {
-        path: path.resolve(__dirname, '..', '..', 'dist'),
-        publicPath: 'dist/',
+        path: path.resolve(__dirname, '..', '..', 'dist', 'public'),
+        publicPath: '/public',
         library: 'JN',
         libraryTarget: 'var'
     },
@@ -42,11 +45,21 @@ var config = {
     },
 
     plugins: [
+
         new DefinePlugin({
             'process.env': {
                 NODE_ENV: process.env.NODE_ENV
             }
+        }),
+
+        new HtmlWebpackPlugin({
+            // Relative to outputPath, which is public/. The template is not
+            // actually public, but served from the express server.
+            filename: '../index.html',
+            template: '../template/index.html',
+            inject: 'head'
         })
+
     ]
 
 };

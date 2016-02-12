@@ -28,7 +28,6 @@ var config = {
 
     resolve: {
         root: APP_ROOT,
-        fallback: path.resolve(__dirname, '..', '..', 'src', 'shared'),
         extensions: ['', '.js', '.jsx']
     },
 
@@ -56,6 +55,7 @@ var config = {
             }
         }),
 
+        // Use banner plugin to inject source map support
         new BannerPlugin(
             'require("source-map-support").install();',
             { raw: true, entryOnly: false }

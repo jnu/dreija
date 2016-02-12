@@ -1,12 +1,13 @@
 import {
     REQUEST_RESOURCE,
     RECEIVE_RESOURCE,
-    REQUEST_INDEX,
-    RECEIVE_INDEX,
+    REQUEST_POSTS_INDEX,
+    RECEIVE_POSTS_INDEX,
     SELECT_POST,
     SELECT_PAGE,
-    COUCH_ROOT,
-    COUCH_VIEW_ROOT
+    DB_ROOT,
+    DB_POSTS,
+    DB_PAGES
 } from '../constants';
 import fetch from 'isomorphic-fetch';
 
@@ -48,10 +49,10 @@ export function selectPost(id) {
     };
 }
 
-function fetchPage(id) {
+function fetchPost(id) {
     return dispatch => {
         dispatch(requestResource(id));
-        return fetch(`${COUCH_ROOT}/${id}`)
+        return fetch(`${DB_POSTS}/${id}`)
             .then(req => req.json())
             .then(json => dispatch(receiveResource(id, json)));
     };
@@ -72,7 +73,7 @@ function shouldFetchResource(state, id) {
 export function fetchResourceIfNecessary(id) {
     return (dispatch, getState) => {
         if (shouldFetchResource(getState(), id)) {
-            return dispatch(fetchPage(id));
+            return dispatch(fetchPost(id));
         }
     };
 }
@@ -85,29 +86,30 @@ export function fetchResourceIfNecessary(id) {
 
 function requestIndex() {
     return {
-        type: REQUEST_INDEX,
+        type: REQUEST_POSTS_INDEX,
         timestamp: Date.now()
     };
 }
 
-function receiveIndex() {
+function receiveIndex(json) {
     return {
-        type: RECEIVE_INDEX,
-        timestamp: Date.now()
+        type: RECEIVE_POSTS_INDEX,
+        timestamp: Date.now(),
+        rawIndex: json
     };
 }
 
 function fetchIndex() {
     return dispatch => {
         dispatch(requestIndex());
-        return fetch(`${COUCH_VIEW_ROOT}/index`)
+        return fetch(`${DB_POSTS}`)
             .then(req => req.json())
             .then(json => dispatch(receiveIndex(json)));
     };
 }
 
 function shouldFetchIndex(state) {
-    return state.isFetchingIndex;
+    return !state.isFetchingIndex;
 }
 
 export function fetchIndexIfNecessary() {

@@ -2,12 +2,12 @@ BUILD        = ./dist
 NODE_MODULES = ./node_modules
 NPM_BIN      = $(shell npm bin)
 
-.PHONY: build clean install lint shrinkwrap up watch
+.PHONY: build clean install lint shrinkwrap watch
 
 all: build
 
 build: shrinkwrap
-	NODE_ENV=production $(NPM BIN)/webpack --bail
+	NODE_ENV=production $(NPM_BIN)/webpack --bail
 
 shrinkwrap: $(NODE_MODULES)
 	npm prune
@@ -24,8 +24,8 @@ install:
 	npm install
 	npm prune
 
-up: $(NODE_MODULES)
-	NODE_PATH=./src/shared/ node ./src/server/app.js
+# up: $(NODE_MODULES) $(BUILD) stop start
+
 
 watch: $(NODE_MODULES)
 	$(NPM_BIN)/webpack --watch

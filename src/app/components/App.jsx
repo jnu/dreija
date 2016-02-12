@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { fetchIndex } from '../actions';
+import { fetchIndexIfNecessary } from '../actions';
 
 
 export default class App extends Component {
@@ -9,30 +9,31 @@ export default class App extends Component {
         super(props);
     }
 
-    componentDidMount() {
-        const { dispatch } = this.props;
-        dispatch(fetchIndex());
-    }
-
     render() {
         if (this.props.isFetchingIndex) {
             return (<div>Wait!</div>);
         }
         return (
             <div className='App'>
-                loaded: <pre>{ JSON.stringify(this.props.posts, null, '  ') }</pre>
+                loaded: <pre>{ JSON.stringify(this.props.state, null, '  ') }</pre>
             </div>
         );
     }
 
-    getPropsFromState(state) {
-        let posts = state.get('data').filter((v, k) => k.get('type') === 'post');
+    static getPropsFromState(state) {
+        let posts = state.root.get('data').filter((v, k) => v.get('type') === 'post');
 
         return {
-            isFetchingIndex: state.get('isFetchingIndex'),
-            posts: posts.toJS() || []
+            isFetchingIndex: state.root.get('isFetchingIndex'),
+            posts: posts.toJS() || [],
+            state: state
         };
     }
+
+    static fetchData() {
+        return fetchIndexIfNecessary();
+    }
+
 }
 
 export default connect(App.getPropsFromState)(App);

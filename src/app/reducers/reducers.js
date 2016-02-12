@@ -8,34 +8,6 @@ import {
 } from '../constants';
 
 
-const initialState = Immutable.fromJS({
-    view: POST_VIEW,
-    currentId: '234356tef',
-    data: {
-        '234356tef': {
-            id: '234356tef',
-            title: 'foobarzap',
-            category: 'a',
-            snippet: 'foo',
-            created: '2015-01-01',
-            content: 'a b c d e f g h i j k l m n o p .... all fetched async',
-            type: 'post'
-        },
-        'asdfasdfsdf': {
-            id: 'asdfasdfsdf',
-            title: 'zapbarfoo',
-            category: 'b',
-            snippet: 'bar',
-            created: '2015-01-02',
-            content: null,
-            type: 'post',
-            isFetching: false
-        }
-    }
-});
-
-
-
 
 function updateWithSelectedPage(state, action) {
     let { id } = action;
@@ -82,7 +54,12 @@ function updateWithRequestIndex(state, action) {
 
 
 function updateWithReceiveIndex(state, action) {
-    let { data } = action;
+    const { rawIndex } = action;
+
+    const data = rawIndex.rows.reduce((agg, entity) => {
+        agg[entity.id] = entity.value;
+        return agg;
+    }, {});
 
     return state.mergeDeep({
         isFetchingIndex: false,
@@ -92,7 +69,7 @@ function updateWithReceiveIndex(state, action) {
 
 
 
-export default function update(state = initialState, action) {
+export default function update(state = Immutable.fromJS({}), action) {
     switch (action.type) {
         case REQUEST_PAGE:
             return updateWithRequestResource(state, action);
