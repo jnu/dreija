@@ -3,10 +3,15 @@ import { connect } from 'react-redux';
 import { fetchIndexIfNecessary } from '../actions';
 
 
-export default class App extends Component {
+class App extends Component {
 
     constructor(props) {
         super(props);
+    }
+
+    componentDidMount() {
+        let { dispatch } = this.props;
+        App.fetchData(dispatch);
     }
 
     render() {
@@ -30,8 +35,8 @@ export default class App extends Component {
         };
     }
 
-    static fetchData() {
-        return fetchIndexIfNecessary();
+    static fetchData(dispatch) {
+        return dispatch(fetchIndexIfNecessary());
     }
 
 }

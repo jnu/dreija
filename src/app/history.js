@@ -1,5 +1,5 @@
 import createMemoryHistory from 'react-router/lib/createMemoryHistory';
-import createBrowserHistory from 'history/lib/createBrowserHistory';
+import { browserHistory } from 'react-router';
 import { BROWSER } from './env';
 
-export const history = BROWSER ? createBrowserHistory() : createMemoryHistory();
+export const history = BROWSER ? browserHistory : createMemoryHistory();

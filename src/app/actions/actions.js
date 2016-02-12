@@ -109,7 +109,7 @@ function fetchIndex() {
 }
 
 function shouldFetchIndex(state) {
-    return !state.isFetchingIndex;
+    return !state.root.get('isFetchingIndex') && (!state.root.get('data') || !state.root.get('data').size);
 }
 
 export function fetchIndexIfNecessary() {
@@ -118,4 +118,8 @@ export function fetchIndexIfNecessary() {
             return dispatch(fetchIndex());
         }
     };
+}
+
+export function forceFetchIndex() {
+    return (dispatch) => dispatch(fetchIndex());
 }

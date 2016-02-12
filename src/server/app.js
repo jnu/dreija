@@ -12,6 +12,7 @@ import proxy from 'express-http-proxy';
 import url from 'url';
 import { DB_NAME, DB_HOST } from './config';
 import Immutable from 'immutable';
+import { history } from '../app/history';
 
 
 const logger = tracer.colorConsole();
@@ -46,49 +47,32 @@ app.get('/db/posts/:id', proxy(DB_HOST, {
 app.get('/', function handleIndexRoute(req, res) {
     const tpl = getTemplate(path.join('.', 'dist', 'index.html'));
 
-    const data = {
-        root: Immutable.fromJS({
-            view: 'home_view',
-            currentId: null,
-            data: {
-                // '234356tef': {
-                //     id: '234356tef',
-                //     title: 'foobarzap',
-                //     category: 'a',
-                //     snippet: 'foo',
-                //     created: '2015-01-01',
-                //     content: 'a b c d e f g h i j k l m n o p .... all fetched async',
-                //     type: 'post'
-                // },
-                // 'asdfasdfsdf': {
-                //     id: 'asdfasdfsdf',
-                //     title: 'zapbarfoo',
-                //     category: 'b',
-                //     snippet: 'bar',
-                //     created: '2015-01-02',
-                //     content: null,
-                //     type: 'post',
-                //     isFetching: false
-                // }
-            }
-        }),
-        routing: null
-    };
+    match({ routes: Routes, location: req.url, history }, (err, redirectLocation, renderProps) => {
+        if (redirectLocation) {
+            res.redirect(redirectLocation.pathname + redirectLocation.search);
+            return;
+        }
 
-    match({ routes: Routes, location: '/' }, (err, redirectLocation, renderProps) => {
-        console.log(err, redirectLocation, renderProps);
         // Create string representations for the data and markup to embed in the
         // response HTML.
-        const store = configureStore(data);
-        const embeddableMarkup = renderToString(createElement(Root, {
-            store: store
-        }));
+        const store = configureStore();
 
-        const page = tpl
-            .replace('/** DATA */', JSON.stringify(store.getState()))
-            .replace('<!-- MARKUP -->', embeddableMarkup);
+        Promise.all(renderProps.components.map(cmp => {
+            return cmp.fetchData ? cmp.fetchData(store.dispatch) : {};
+        }))
+            .then(() => {
+                const embeddableMarkup = renderToString(createElement(Root, {
+                    store,
+                    history
+                }));
 
-        res.send(page);
+                const page = tpl
+                    .replace('/** DATA */', JSON.stringify(store.getState()))
+                    .replace('<!-- MARKUP -->', embeddableMarkup);
+
+                res.charset = 'utf8';
+                res.send(page);
+            });
     });
 });
 
