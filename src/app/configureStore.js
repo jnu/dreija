@@ -2,13 +2,13 @@ import { createStore, applyMiddleware, combineReducers } from 'redux';
 import thunkMiddleware from 'redux-thunk';
 import createLogger from 'redux-logger';
 import rootReducer from './reducers';
-import { history } from './history';
+import { browserHistory } from 'react-router';
 import { syncHistory, routeReducer } from 'react-router-redux';
 import { BROWSER } from './env';
 
 
 const loggerMiddleware = createLogger();
-const reduxRouterMiddleware = syncHistory(history);
+const reduxRouterMiddleware = BROWSER && syncHistory(browserHistory);
 
 const reducer = combineReducers({ root: rootReducer, routing: routeReducer });
 
@@ -26,7 +26,9 @@ export default function configureStore(initialState) {
         applyMiddleware(...middleware)
     );
 
-    reduxRouterMiddleware.listenForReplays(store);
+    if (BROWSER) {
+        reduxRouterMiddleware.listenForReplays(store);
+    }
 
     return store;
 }
