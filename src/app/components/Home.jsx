@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
+import { Link } from 'react-router';
 import { fetchIndexIfNecessary } from '../actions';
+import Immutable from 'immutable';
 
 
 class Home extends Component {
@@ -10,8 +12,8 @@ class Home extends Component {
 
         return {
             isFetchingIndex: state.root.get('isFetchingIndex'),
-            posts: posts.toJS() || [],
-            state: state
+            posts: posts || Immutable.Map(),
+            state
         };
     }
 
@@ -24,6 +26,14 @@ class Home extends Component {
         Home.fetchData(dispatch);
     }
 
+    _createPostsList(posts) {
+        return posts.map((v, k) => (
+            <div key={ k }>
+                <Link to={ `post/${k}` }>{ v.get('title') }</Link>
+            </div>
+        )).toList().toJS();
+    }
+
     render() {
         if (this.props.isFetchingIndex) {
             return (<div>Wait!</div>);
@@ -31,7 +41,9 @@ class Home extends Component {
         return (
             <div>
                 Home page. Index:
-                <pre>{JSON.stringify(this.props.posts, null, '  ')}</pre>
+                <div>
+                    { this._createPostsList(this.props.posts) }
+                </div>
                 <button>Go to post 4</button>
                 <button>Go to page 'about'</button>
             </div>

@@ -1,47 +1,35 @@
 import Immutable from 'immutable';
 import {
-    REQUEST_PAGE, RECEIVE_PAGE,
     REQUEST_POST, RECEIVE_POST,
     REQUEST_POSTS_INDEX, RECEIVE_POSTS_INDEX,
-    POST_VIEW, PAGE_VIEW,
-    SELECT_POST, SELECT_PAGE
+    SELECT_POST
 } from '../constants';
 
 
-
-function updateWithSelectedPage(state, action) {
-    let { id } = action;
-
-    return state.mergeDeep({
-        currentId: id,
-        view: PAGE_VIEW
-    });
-}
 
 function updateWithSelectedPost(state, action) {
     let { id } = action;
 
     return state.mergeDeep({
-        currentId: id,
-        view: POST_VIEW
+        currentId: id
     });
 }
 
 
-function updateWithRequestResource(state, action) {
+function updateWithRequestPost(state, action) {
     let { id } = action;
 
     return state.mergeDeep({
-        data: { [id]: { id }, isFetching: true }
+        data: { [id]: { id, isFetching: true } }
     });
 }
 
 
-function updateWithReceiveResource(state, action) {
-    let { id, post } = action;
+function updateWithReceivePost(state, action) {
+    let { id, data } = action;
 
     return state.mergeDeep({
-        data: { [id]: post, isFetching: false }
+        data: { [id]: Object.assign({}, data, { isFetching: false }) }
     });
 }
 
@@ -71,22 +59,16 @@ function updateWithReceiveIndex(state, action) {
 
 export default function update(state = Immutable.fromJS({}), action) {
     switch (action.type) {
-        case REQUEST_PAGE:
-            return updateWithRequestResource(state, action);
-        case RECEIVE_PAGE:
-            return updateWithReceiveResource(state, action);
         case REQUEST_POST:
-            return updateWithRequestResource(state, action);
+            return updateWithRequestPost(state, action);
         case RECEIVE_POST:
-            return updateWithReceiveResource(state, action);
+            return updateWithReceivePost(state, action);
         case REQUEST_POSTS_INDEX:
             return updateWithRequestIndex(state, action);
         case RECEIVE_POSTS_INDEX:
             return updateWithReceiveIndex(state, action);
         case SELECT_POST:
             return updateWithSelectedPost(state, action);
-        case SELECT_PAGE:
-            return updateWithSelectedPage(state, action);
         default:
             return state;
     }

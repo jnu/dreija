@@ -1,5 +1,5 @@
 env:
     node: true
 
-ecmaFeatures:
-    modules: true
+parserOptions:
+    sourceType: module

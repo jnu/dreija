@@ -1,42 +1,30 @@
 import {
-    REQUEST_RESOURCE,
-    RECEIVE_RESOURCE,
+    REQUEST_POST,
+    RECEIVE_POST,
     REQUEST_POSTS_INDEX,
     RECEIVE_POSTS_INDEX,
     SELECT_POST,
-    SELECT_PAGE,
-    DB_ROOT,
-    DB_POSTS,
-    DB_PAGES
+    DB_POSTS
 } from '../constants';
 import fetch from 'isomorphic-fetch';
-
-
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Resource
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-function requestResource(id) {
+function requestPost(id) {
     return {
-        type: REQUEST_RESOURCE,
+        type: REQUEST_POST,
         id,
         timestamp: Date.now()
     };
 }
 
-function receiveResource(id, json) {
+function receivePost(id, json) {
     return {
-        type: RECEIVE_RESOURCE,
-        page: json.data,
-        timestamp: Date.now()
-    };
-}
-
-export function selectPage(id) {
-    return {
-        type: SELECT_PAGE,
+        type: RECEIVE_POST,
         id,
+        data: json,
         timestamp: Date.now()
     };
 }
@@ -51,28 +39,36 @@ export function selectPost(id) {
 
 function fetchPost(id) {
     return dispatch => {
-        dispatch(requestResource(id));
+        dispatch(requestPost(id));
         return fetch(`${DB_POSTS}/${id}`)
             .then(req => req.json())
-            .then(json => dispatch(receiveResource(id, json)));
+            .then(json => dispatch(receivePost(id, json)));
     };
 }
 
-function shouldFetchResource(state, id) {
-    const resource = state.data[id];
+function shouldFetchPost(state, id) {
+    const data = state.root.get('data');
 
-    if (!resource) {
+    if (!data) {
         return true;
     }
 
-    if (resource.isFetching) {
-        return false;
+    const post = data.get('id');
+
+    if (!post) {
+        return true;
     }
+
+    if (!post.get('content') && !post.get('isFetching')) {
+        return true;
+    }
+
+    return false;
 }
 
-export function fetchResourceIfNecessary(id) {
+export function fetchPostIfNecessary(id) {
     return (dispatch, getState) => {
-        if (shouldFetchResource(getState(), id)) {
+        if (shouldFetchPost(getState(), id)) {
             return dispatch(fetchPost(id));
         }
     };
@@ -109,7 +105,9 @@ function fetchIndex() {
 }
 
 function shouldFetchIndex(state) {
-    return !state.root.get('isFetchingIndex') && (!state.root.get('data') || !state.root.get('data').size);
+    return !state.root.get('isFetchingIndex') && (
+        !state.root.get('data') || !state.root.get('data').size
+    );
 }
 
 export function fetchIndexIfNecessary() {
@@ -121,5 +119,5 @@ export function fetchIndexIfNecessary() {
 }
 
 export function forceFetchIndex() {
-    return (dispatch) => dispatch(fetchIndex());
+    return dispatch => dispatch(fetchIndex());
 }
