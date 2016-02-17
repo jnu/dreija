@@ -8,11 +8,11 @@ import Routes from './components/Routes';
 import configureStore from './configureStore';
 import Immutable from 'immutable';
 import { history } from './history';
-import utf8 from 'utf8';
+import { decode } from '../shared/encoding';
 
-// NB: e30= is Base-64 encoded '{}'.
+// NB: e30= is encoded '{}'.
 export const load = (encoded = 'e30=') => {
-    const data = JSON.parse(utf8.decode(atob(encoded)));
+    const data = decode(encoded);
     const initialRootState = Immutable.fromJS(data.root || {});
     const initialState = Object.assign({}, data, { root: initialRootState });
     const store = configureStore(initialState);
