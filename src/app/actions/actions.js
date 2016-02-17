@@ -4,9 +4,14 @@ import {
     REQUEST_POSTS_INDEX,
     RECEIVE_POSTS_INDEX,
     SELECT_POST,
-    DB_POSTS
+    DB_POSTS,
+    FRESH_THRESH,
+    RECEIVE_TIMESTAMP_KEY, RECEIVE_INDEX_TIMESTAMP_KEY,
+    IS_FETCHING_KEY, IS_FETCHING_INDEX_KEY
 } from '../constants';
 import fetch from 'isomorphic-fetch';
+
+
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Resource
@@ -55,11 +60,21 @@ function shouldFetchPost(state, id) {
 
     const post = data.get('id');
 
+    // If there is no post with that ID, fetch it.
     if (!post) {
         return true;
     }
 
-    if (!post.get('content') && !post.get('isFetching')) {
+    // If post is lacking content (e.g. it has only been fetched by the index)
+    // then fetch the full thing.
+    if (!post.get('content') && !post.get(IS_FETCHING_KEY)) {
+        return true;
+    }
+
+    // Re-fetch stale posts or posts that are missing a receive timestamp for
+    // some reason.
+    const receiveTs = post.get(RECEIVE_TIMESTAMP_KEY);
+    if (!receiveTs || (Date.now() - receiveTs) > FRESH_THRESH) {
         return true;
     }
 
@@ -105,8 +120,9 @@ function fetchIndex() {
 }
 
 function shouldFetchIndex(state) {
-    return !state.root.get('isFetchingIndex') && (
-        !state.root.get('data') || !state.root.get('data').size
+    return !state.root.get(IS_FETCHING_INDEX_KEY) && (
+        !state.root.get(RECEIVE_INDEX_TIMESTAMP_KEY) ||
+        (Date.now() - state.root.get(RECEIVE_INDEX_TIMESTAMP_KEY)) > FRESH_THRESH
     );
 }
 
