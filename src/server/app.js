@@ -1,17 +1,18 @@
 import path from 'path';
 import fs from 'fs';
 import express from 'express';
+import spiderDetector from 'spider-detector';
 import tracer from 'tracer';
-import { renderToString } from 'react-dom/server';
+import { renderToString, renderToStaticMarkup } from 'react-dom/server';
 import { Root } from '../app/components';
 import configureStore from '../app/configureStore';
 import { createElement } from 'react';
-import { match } from 'react-router';
+import { match, createMemoryHistory } from 'react-router';
 import Routes from '../app/components/Routes';
 import proxy from 'express-http-proxy';
 import { DB_NAME, DB_HOST } from './config';
-import { history } from '../app/history';
 import { encode } from '../shared/encoding';
+import Immutable from 'immutable';
 
 
 
@@ -38,7 +39,8 @@ const templateCache = {};
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 /**
- * Load the template from the specified path. Result is cached, only loaded once.
+ * Load the template from the specified path. Result is cached, only loaded
+ * once.
  * @param  {string} fn - template file name
  * @return {string}
  */
@@ -64,19 +66,28 @@ app.get('/db/posts/:id', proxy(DB_HOST, {
     forwardPath: (req, res) => `/${DB_NAME}/${req.params.id}`
 }));
 
+// Static assets directory
 app.use('/public', express.static(path.join('.', 'dist', 'public')));
+
+// Detect when static pages should be sent
+app.use(spiderDetector.middleware());
 
 
 // Single page app = single route handler. Define as middleware so it always
 // gets called (unless one of the db routes got matched above).
 app.use(function handleIndexRoute(req, res, next) {
+    const USE_STATIC = req.isSpider();
     const tpl = getTemplate(path.join('.', 'dist', 'index.html'));
 
     res.header('Content-Type', 'text/html; charset=utf-8');
 
     logger.info("Handling default", req.url);
 
-    match({ routes: Routes, location: req.url }, (err, redirectLocation, renderProps) => {
+    const history = createMemoryHistory();
+    history.replace(req.url);
+
+    // Run router to match requests
+    match({ routes: Routes, history }, (err, redirectLocation, renderProps) => {
         if (err) {
             res.status(500).send(err);
             return;
@@ -88,25 +99,46 @@ app.use(function handleIndexRoute(req, res, next) {
         }
 
         if (renderProps) {
-            // Create string representations for the data and markup to embed in the
-            // response HTML.
-            const store = configureStore();
+            // Set initial store routing state based on requested path
+            const store = configureStore({
+                root: Immutable.Map(),
+                routing: {
+                    location: history.createLocation(req.url)
+                }
+            });
 
             Promise.all(
                 renderProps.components.map(cmp => {
-                    return cmp.fetchData && cmp.fetchData(store.dispatch, renderProps.params);
+                    return cmp.fetchData && cmp.fetchData(
+                        store.dispatch,
+                        renderProps.params
+                    );
                 })
             )
                 .then(() => {
-                    const embeddableMarkup = renderToString(createElement(Root, {
+                    // Choose renderer based on whether static markup is desired
+                    const renderMethod = USE_STATIC ?
+                        renderToStaticMarkup :
+                        renderToString;
+
+                    // Render to a string
+                    const embeddableMarkup = renderMethod(createElement(Root, {
                         store,
                         history
                     }));
 
-                    const encodedData = encode(store.getState());
-                    const page = tpl
-                        .replace('/** DATA */', `'${encodedData}'`)
-                        .replace('<!-- MARKUP -->', embeddableMarkup);
+                    // Inject markup into page
+                    let page = tpl.replace('<!-- MARKUP -->', embeddableMarkup);
+
+                    // Encode store data and inject it for bootstrapping, if
+                    // this is not a static page.
+                    if (!USE_STATIC) {
+                        const encodedData = encode(store.getState());
+                        page = page.replace(
+                            '/** DATA */',
+                            `JN.load('${encodedData}');`
+                        );
+                    }
 
                     res.send(page);
                 });

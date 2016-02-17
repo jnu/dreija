@@ -41,6 +41,7 @@
     "redux-logger": "^2.5.0",
     "redux-thunk": "^1.0.3",
     "source-map-support": "^0.4.0",
+    "spider-detector": "^1.0.14",
     "tracer": "~0.7.4",
     "utf8": "^2.1.1",
     "webpack": "^1.12.12",
