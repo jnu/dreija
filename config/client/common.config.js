@@ -5,7 +5,7 @@ var HtmlWebpackPlugin = require('html-webpack-plugin');
 
 console.log(__dirname, __filename)
 
-const APP_ROOT = path.resolve(__dirname, '..', '..', 'src', 'app');
+const APP_ROOT = path.resolve(__dirname, '..', '..', 'src', 'client');
 
 var config = {
 

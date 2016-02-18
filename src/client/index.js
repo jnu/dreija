@@ -3,9 +3,8 @@ import 'babel-runtime/core-js';
 import React from 'react';
 import { render } from 'react-dom';
 import { match, browserHistory } from 'react-router';
-import { Root } from './components';
-import Routes from './components/Routes';
-import configureStore from './configureStore';
+import { Root, Routes } from '../shared/components';
+import configureStore from '../shared/configureStore';
 import Immutable from 'immutable';
 import { decode } from '../shared/encoding';
 
