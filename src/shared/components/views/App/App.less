@@ -1,3 +1,76 @@
-.App-sidebar {
+.App {
+    width: 100%;
     position: absolute;
+    top: 0;
+    left: 0;
+
+    .App-header {
+        background-color: #F44336;
+        position: fixed;
+        width: 100%;
+        top: 0;
+        left: 0;
+        padding-left: 15%;
+        z-index: 1;
+    }
+
+    .App-header-nav {
+        display: inline-block;
+        right: 2rem;
+        position: absolute;
+
+        > .Link {
+            color: #333;
+            text-decoration: none;
+            &:hover {
+                color: #555;
+            }
+
+            & + .Link {
+                margin-left: 2rem;
+            }
+        }
+    }
+
+    .App-header-logo {
+        display: inline-block;
+        .Link {
+            text-decoration: none;
+            color: #333;
+            font-weight: bold;
+            font-style: normal;
+            &:hover {
+                color: #555;
+            }
+        }
+    }
+
+    .App-sidebar {
+        width: 15%;
+        max-width: 300px;
+        position: fixed;
+        z-index: 2;
+
+        img {
+            position: absolute;
+            right: 0;
+            top: 0;
+        }
+    }
+
+    .App-main {
+        position: relative;
+        left: 15%;
+        width: 85%;
+        z-index: 0;
+
+        .App-main-wrapper {
+            width: 700px;
+            max-width: 100%;
+            margin: 0 auto;
+            padding-top: 5rem;
+        }
+
+    }
+
 }

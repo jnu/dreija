@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
-import { connectToStore } from '../../lib/decorators/redux';
-import { fetchPostIfNecessary } from '../../actions';
+import { connectToStore } from '../../../lib/decorators/redux';
+import { fetchPostIfNecessary } from '../../../actions';
+
 
 @connectToStore
 class Post extends Component {

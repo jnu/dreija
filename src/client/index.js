@@ -1,5 +1,7 @@
 import 'babel-runtime/core-js';
 
+import './index.less';
+
 import React from 'react';
 import { render } from 'react-dom';
 import { match, browserHistory } from 'react-router';

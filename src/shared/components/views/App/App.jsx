@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { Link } from 'react-router';
 import { connectToStore } from '../../../lib/decorators/redux';
 import eyeClosePng from 'assets/img/eye_close.png';
 import eyeOpenPng from 'assets/img/eye_open.png';
@@ -29,14 +30,22 @@ class App extends Component {
         return (
             <div className="App">
                 <header className="App-header">
-                    Header stuff
+                    <address className="App-header-logo">
+                        <Link to="/" className="Link">JNU</Link>
+                    </address>
+                    <nav className="App-header-nav">
+                        <Link to="/post/about" className="Link">about</Link>
+                        <Link to="/post/contact" className="Link">contact</Link>
+                    </nav>
                 </header>
                 <aside className="App-sidebar">
                     <img src={ eyeOpenPng } style={ isFetchingSomething ? HIDE_STYLE : {} } />
                     <img src={ eyeClosePng } style={ !isFetchingSomething ? HIDE_STYLE : {} } />
                 </aside>
                 <main className="App-main">
-                    { this.props.children }
+                    <div className="App-main-wrapper">
+                        { this.props.children }
+                    </div>
                 </main>
             </div>
         );
