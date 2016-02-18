@@ -1,8 +1,10 @@
-*-min.js
-*.min.js
 .DS_Store
 *.dump
 *.psd
+*.log
 img/src/
 deprecated/
 node_modules/
+dist/
+tmp/
+server.pid
