@@ -1,14 +1,15 @@
 import React, { Component } from 'react';
-import { connect } from 'react-redux';
+import { connectToStore } from '../../lib/decorators/redux';
 import { fetchPostIfNecessary } from '../../actions';
 
+@connectToStore
 class Post extends Component {
 
     static fetchData(dispatch, { id }) {
         return dispatch(fetchPostIfNecessary(id));
     }
 
-    static getPropsFromState(state, props) {
+    static deriveProps(state, props) {
         const posts = state.root.get('data');
         const post = posts.get(props.params.id);
         return { post };
@@ -46,4 +47,4 @@ class Post extends Component {
 
 };
 
-export default connect(Post.getPropsFromState)(Post);
+export default Post;

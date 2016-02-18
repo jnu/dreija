@@ -27,6 +27,16 @@ var config = {
         root: APP_ROOT
     },
 
+    module: {
+        loaders: [
+            {
+                test: /\.less$/,
+                exclude: /node_modules/,
+                loaders: ['style', 'css', 'less']
+            }
+        ]
+    },
+
     plugins: [
 
         new HtmlWebpackPlugin({

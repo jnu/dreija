@@ -2,7 +2,10 @@ parserOptions:
     ecmaVersion: 6
     ecmaFeatures:
         jsx: true
+        decorators: true
     sourceType: module
+
+parser: babel-eslint
 
 globals:
     Promise: false

@@ -1,13 +1,13 @@
 import React, { Component } from 'react';
-import { connect } from 'react-redux';
+import { connectToStore } from '../../lib/decorators/redux';
 import { Link } from 'react-router';
 import { fetchIndexIfNecessary } from '../../actions';
 import Immutable from 'immutable';
 
-
+@connectToStore
 class Home extends Component {
 
-    static getPropsFromState(state) {
+    static deriveProps(state) {
         let posts = state.root.get('data').filter((v, k) => v.get('type') === 'post');
 
         return {
@@ -51,4 +51,4 @@ class Home extends Component {
     }
 }
 
-export default connect(Home.getPropsFromState)(Home);
+export default Home;

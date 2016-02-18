@@ -28,12 +28,10 @@ var config = {
             },
             {
                 test: /\.png$/,
-                loader: 'url-loader?limit=10000&mimetype=image/png&name=[hash].[ext]'
-            },
-            {
-                test: /\.less$/,
-                exclude: /node_modules/,
-                loaders: ['css', 'less']
+                loaders: [
+                    'url-loader?limit=20000&mimetype=image/png&name=[hash].[ext]',
+                    'image-webpack?{progressive:true, optimizationLevel: 7, pngquant:{quality: "50-90", speed: 2}}'
+                ]
             }
         ],
         noParse: [/node_modules[\/\\]tracer/]

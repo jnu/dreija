@@ -34,6 +34,16 @@ var config = {
         root: APP_ROOT
     },
 
+    module: {
+        loaders: [
+            {
+                test: /\.less$/,
+                exclude: /node_modules/,
+                loaders: ['css', 'less']
+            }
+        ]
+    },
+
     output: {
         path: path.resolve(__dirname, '..', '..', 'dist'),
         filename: '[name].js'
