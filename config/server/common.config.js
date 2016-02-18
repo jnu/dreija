@@ -1,6 +1,10 @@
+/**
+ * Webpack config shared by server-side dev and prod bundles
+ */
 var path = require('path');
 var fs = require('fs');
-var DefinePlugin = require('webpack/lib/DefinePlugin');
+var deepMerge = require('../../lib/deepMerge');
+var sharedConfig = require('../shared/shared.config');
 var BannerPlugin = require('webpack/lib/BannerPlugin');
 
 
@@ -27,33 +31,15 @@ var config = {
     },
 
     resolve: {
-        root: APP_ROOT,
-        extensions: ['', '.js', '.jsx']
-    },
-
-    module: {
-        loaders: [
-            {
-                test: /\.jsx?$/,
-                loader: 'babel'
-            }
-        ],
-        noParse: [/node_modules[\/\\]tracer/]
+        root: APP_ROOT
     },
 
     output: {
         path: path.resolve(__dirname, '..', '..', 'dist'),
-        publicPath: 'dist/',
         filename: '[name].js'
     },
 
     plugins: [
-
-        new DefinePlugin({
-            'process.env': {
-                NODE_ENV: process.env.NODE_ENV
-            }
-        }),
 
         // Use banner plugin to inject source map support
         new BannerPlugin(
@@ -69,4 +55,4 @@ var config = {
 
 };
 
-module.exports = config;
+module.exports = deepMerge({}, sharedConfig, config);

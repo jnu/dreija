@@ -1,9 +1,11 @@
+/**
+ * Webpack config shared by client-side dev and prod bundles
+ */
 var path = require('path');
-var DefinePlugin = require('webpack/lib/DefinePlugin');
+var deepMerge = require('../../lib/deepMerge');
+var sharedConfig = require('../shared/shared.config');
 var HtmlWebpackPlugin = require('html-webpack-plugin');
 
-
-console.log(__dirname, __filename)
 
 const APP_ROOT = path.resolve(__dirname, '..', '..', 'src', 'client');
 
@@ -17,40 +19,15 @@ var config = {
 
     output: {
         path: path.resolve(__dirname, '..', '..', 'dist', 'public'),
-        publicPath: '/public',
         library: 'JN',
         libraryTarget: 'var'
     },
 
     resolve: {
-        root: APP_ROOT,
-        fallback: path.resolve(__dirname, '..', '..', 'src', 'shared'),
-        extensions: ['', '.js', '.jsx']
-    },
-
-    module: {
-        loaders: [
-            {
-                test: /\.jsx?$/,
-                exclude: /node_modules/,
-                loader: 'babel?cacheDirectory'
-            },
-            {
-                test: /\.less$/,
-                exclude: /node_modules/,
-                loaders: ['css', 'less']
-            }
-        ],
-        noParse: [/node_modules[\/\\]tracer/]
+        root: APP_ROOT
     },
 
     plugins: [
-
-        new DefinePlugin({
-            'process.env': {
-                NODE_ENV: process.env.NODE_ENV
-            }
-        }),
 
         new HtmlWebpackPlugin({
             // Relative to outputPath, which is public/. The template is not
@@ -64,4 +41,4 @@ var config = {
 
 };
 
-module.exports = config;
+module.exports = deepMerge({}, sharedConfig, config);
