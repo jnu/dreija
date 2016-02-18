@@ -10,7 +10,7 @@ import { createElement } from 'react';
 import { match, createMemoryHistory } from 'react-router';
 import proxy from 'express-http-proxy';
 import { DB_NAME, DB_HOST } from './config';
-import { encode } from '../shared/encoding';
+import { encode } from '../shared/lib/encoding';
 import Immutable from 'immutable';
 
 
