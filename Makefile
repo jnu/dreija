@@ -20,7 +20,7 @@ clean:
 	rm -rf $(BUILD)
 	rm -rf $(NODE_MODULES)
 
-install:
+$(NODE_MODULES):
 	npm install
 	npm prune
 
