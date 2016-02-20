@@ -43,14 +43,21 @@ if [ "$BRANCH" != "master" ]; then
 fi
 
 
-
 SHA=$(git rev-parse --short HEAD)
-echo "Tagging version $NEWTAG at $SHA"
+
+echo "Building container $NEWTAG from $SHA"
+eval "$(docker-machine env default)"
+docker build -t "joen/dreija:$NEWTAG" -t "joen/dreija:latest" .
+
+if [ "$?" != "0" ]; then
+    echo >&2
+    echo >&2 "Failed to build docker container. Aborting release."
+    echo >&2
+    exit 4
+fi
+
+echo "Tagging project version $NEWTAG at $SHA"
 git tag -a "$NEWTAG" -m "Release bot tag $LASTTAG -> $NEWTAG"
 
 echo "Pushing $NEWTAG to origin"
 git push origin master --tags
-
-echo "Building container"
-eval "$(docker-machine env default)"
-docker build -t "joen/dreija:$NEWTAG" -t "joen/dreija:latest" .
