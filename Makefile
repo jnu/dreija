@@ -6,7 +6,7 @@ NPM_BIN      = $(shell npm bin)
 
 all: build
 
-build: shrinkwrap
+build: lint shrinkwrap
 	NODE_ENV=production $(NPM_BIN)/webpack --bail
 
 shrinkwrap: $(NODE_MODULES)

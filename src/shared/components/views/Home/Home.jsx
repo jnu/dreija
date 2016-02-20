@@ -3,7 +3,7 @@ import { connectToStore } from '../../../lib/decorators/redux';
 import { Link } from 'react-router';
 import { fetchIndexIfNecessary } from '../../../actions';
 
-const ITEM_HEIGHT = 30;
+// const ITEM_HEIGHT = 30;
 
 
 @connectToStore
