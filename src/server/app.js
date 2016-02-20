@@ -58,11 +58,19 @@ function getTemplate(fn) {
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 app.get('/db/posts', proxy(DB_HOST, {
-    forwardPath: (req, res) => `/${DB_NAME}/_design/views/_view/index`
+    forwardPath: (req, res) => {
+        const forwardPath = `/${DB_NAME}/_design/views/_view/index`;
+        logger.info(`Forwarding posts index to ${DB_HOST}${forwardPath}`);
+        return forwardPath;
+    }
 }));
 
 app.get('/db/posts/:id', proxy(DB_HOST, {
-    forwardPath: (req, res) => `/${DB_NAME}/${req.params.id}`
+    forwardPath: (req, res) => {
+        const forwardPath = `/${DB_NAME}/${req.params.id}`;
+        logger.info(`Forwarding post request to ${DB_HOST}${forwardPath}`);
+        return forwardPath;
+    }
 }));
 
 // Static assets directory
@@ -80,7 +88,7 @@ app.use(function handleIndexRoute(req, res, next) {
 
     res.header('Content-Type', 'text/html; charset=utf-8');
 
-    logger.info("Handling default", req.url);
+    logger.info("Handling default SPA with request", req.url);
 
     const history = createMemoryHistory();
     history.replace(req.url);
@@ -88,16 +96,20 @@ app.use(function handleIndexRoute(req, res, next) {
     // Run router to match requests
     match({ routes: Routes, history }, (err, redirectLocation, renderProps) => {
         if (err) {
+            logger.error('Failed to match route', err);
             res.status(500).send(err);
             return;
         }
 
         if (redirectLocation) {
-            res.redirect(redirectLocation.pathname + redirectLocation.search);
+            const redirect = redirectLocation.pathname + redirectLocation.search;
+            logger.warn('Redirecting to', redirect);
+            res.redirect(redirect);
             return;
         }
 
         if (renderProps) {
+            logger.info('Rendering page');
             // Set initial store routing state based on requested path
             const store = configureStore({
                 root: Immutable.Map(),
@@ -115,6 +127,8 @@ app.use(function handleIndexRoute(req, res, next) {
                 })
             )
                 .then(() => {
+                    logger.info('Fetched data, rendering page. Static:', USE_STATIC);
+
                     // Choose renderer based on whether static markup is desired
                     const renderMethod = USE_STATIC ?
                         renderToStaticMarkup :
@@ -140,9 +154,12 @@ app.use(function handleIndexRoute(req, res, next) {
                     }
 
                     res.send(page);
+                }, e => {
+                    logger.error('Failed to fetch data for', req.url, 'Error:', e);
                 });
         }
         else {
+            logger.error('404 on', req.url);
             res.status(404).send('not found');
         }
     });
