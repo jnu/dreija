@@ -1,4 +1,4 @@
-FROM node:argon
+FROM node:latest
 MAINTAINER Joe Nudell <joenudell@gmail.com>
 
 RUN mkdir -p /usr/src/app
