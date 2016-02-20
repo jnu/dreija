@@ -2,7 +2,7 @@ BUILD        = ./dist
 NODE_MODULES = ./node_modules
 NPM_BIN      = $(shell npm bin)
 
-.PHONY: build clean install lint shrinkwrap watch
+.PHONY: build clean install lint shrinkwrap watch devimg
 
 all: build
 
@@ -25,6 +25,9 @@ $(NODE_MODULES):
 	npm prune
 
 # up: $(NODE_MODULES) $(BUILD) stop start
+
+devimg: lint
+	docker build -t "joen/dreija:dev" .
 
 
 watch: $(NODE_MODULES)
