@@ -28,7 +28,7 @@
     "eslint": "^2.0.0",
     "eslint-plugin-react": "^3.16.1",
     "express": "^4.13.4",
-    "express-http-proxy": "^0.6.0",
+    "express-http-proxy": "git+https://github.com/jnu/express-http-proxy.git#cl-str-bug",
     "file-loader": "^0.8.5",
     "history": "^1.17.0",
     "html-webpack-plugin": "^2.8.1",

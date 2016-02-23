@@ -17,10 +17,14 @@ ENV LC_CTYPE en_US.UTF-8
 # Build app
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
-ADD ./npm-shrinkwrap.json /usr/src/app/npm-shrinkwrap.json
-COPY ./dist /usr/src/app/dist
 
+# Build deps - cached where possible
+COPY package.json package.json
+COPY npm-shrinkwrap.json npm-shrinkwrap.json
 RUN npm install
+
+# Copy built app
+COPY dist /usr/src/app/dist
 
 EXPOSE 3030
 CMD [ "node", "dist/server.js" ]

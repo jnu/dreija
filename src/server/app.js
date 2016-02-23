@@ -12,7 +12,7 @@ import proxy from 'express-http-proxy';
 import { DB_NAME, DB_HOST } from './config';
 import { encode } from '../shared/lib/encoding';
 import Immutable from 'immutable';
-// import utf8 from 'utf8';
+//import utf8 from 'utf8';
 
 
 
@@ -66,13 +66,11 @@ app.get('/db/posts', proxy(DB_HOST, {
         return forwardPath;
     },
     intercept: (rsp, data, req, res, callback) => {
-        logger.info(`RSP index posts`, rsp);
-        // const parsed = JSON.parse(data.toString('utf8'));
-        // const stringified = utf8.encode(JSON.stringify(parsed));
-        // logger.info(`Response index posts parsed/encoded data`, parsed);
-        // logger.info(`Reponse from index proxy raw data:`, stringified);
-        //callback(null, stringified);
-        res.send(data);
+        logger.info('Received response from proxy');
+        const parsed = JSON.stringify(JSON.parse(data.toString('utf8')));
+        //const stringified = utf8.encode(JSON.stringify(parsed));
+        logger.info('Parsed proxy response and encoded');
+        callback(null, parsed);
     }
 }));
 
@@ -83,8 +81,11 @@ app.get('/db/posts/:id', proxy(DB_HOST, {
         return forwardPath;
     },
     intercept: (rsp, data, req, res, callback) => {
-        logger.info(`Reponse from post proxy:`, data);
-        callback(null, data);
+        logger.info('Received response from proxy');
+        const parsed = JSON.stringify(JSON.parse(data.toString('utf8')));
+        //const stringified = utf8.encode(JSON.stringify(parsed));
+        logger.info('Parsed proxy response and encoded');
+        callback(null, parsed);
     }
 }));
 

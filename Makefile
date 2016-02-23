@@ -9,11 +9,11 @@ DOCKER_MACHINE_IP      := $(shell docker-machine ip default)
 SHRINKWRAP             = $(shell cat package.json | md5).pkghash
 
 
-.PHONY: build clean install test lint watch devimg cleandevcontainer
+.PHONY: build clean install test lint watch devimg cleandevcontainer clean-build
 
 all: build
 
-build: test $(SHRINKWRAP)
+build: clean-build test $(SHRINKWRAP)
 	NODE_ENV=production $(NPM_BIN)/webpack --bail
 
 $(SHRINKWRAP): $(NODE_MODULES)
@@ -27,8 +27,11 @@ lint: $(NODE_MODULES)
 
 test: lint
 
-clean: cleandevcontainer
+clean-build:
 	rm -rf $(BUILD)
+
+clean: cleandevcontainer clean-build
+	find . -name '*.pkghash' -delete
 	rm -rf $(NODE_MODULES)
 
 $(NODE_MODULES):
