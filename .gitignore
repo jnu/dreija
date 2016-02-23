@@ -2,6 +2,7 @@
 *.dump
 *.psd
 *.log
+*.pkghash
 img/src/
 deprecated/
 node_modules/
