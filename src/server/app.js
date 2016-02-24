@@ -66,11 +66,12 @@ app.get('/db/posts', proxy(DB_HOST, {
         return forwardPath;
     },
     intercept: (rsp, data, req, res, callback) => {
-        logger.info('Received response from proxy');
-        const parsed = JSON.stringify(JSON.parse(data.toString('utf8')));
-        //const stringified = utf8.encode(JSON.stringify(parsed));
-        logger.info('Parsed proxy response and encoded');
-        callback(null, parsed);
+        // NB Content-length and transfer-encoding are incompatible. Couch
+        // might set transfer-encoding, and the proxy middleware blindly sets
+        // the content-length.
+        // TODO fix this in proxy middleware?
+        res.set('transfer-encoding', '');
+        callback(null, data);
     }
 }));
 
@@ -81,11 +82,9 @@ app.get('/db/posts/:id', proxy(DB_HOST, {
         return forwardPath;
     },
     intercept: (rsp, data, req, res, callback) => {
-        logger.info('Received response from proxy');
-        const parsed = JSON.stringify(JSON.parse(data.toString('utf8')));
-        //const stringified = utf8.encode(JSON.stringify(parsed));
-        logger.info('Parsed proxy response and encoded');
-        callback(null, parsed);
+        // NOTE see /db/posts intercept comment
+        res.set('transfer-encoding', '');
+        callback(null, data);
     }
 }));
 
