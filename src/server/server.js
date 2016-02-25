@@ -1,5 +1,4 @@
 import path from 'path';
-import fs from 'fs';
 import express from 'express';
 import spiderDetector from 'spider-detector';
 import tracer from 'tracer';
@@ -15,15 +14,24 @@ import template from '../template/index.html';
 import runtime from 'dreija-runtime';
 
 
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Runtime config
+//
+// Dynamic module injected by the build
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+const ensureArray = A => Array.isArray(A) ? A : [A];
+const { headScripts } = runtime;
+const headScriptBlock = headScripts ?
+    ensureArray(headScripts).map(s => `<script src="${s}"></script>`).join('\n') : '';
+
+
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Constants
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-const tpl = template.replace(
-    '<!-- BUNDLE -->',
-    `<script src="${runtime.clientBundlePath}"></script>`
-);
-
+const tpl = template.replace('<!-- BUNDLE -->', headScriptBlock);
 
 const Root = dreija.root();
 
@@ -38,12 +46,6 @@ const PORT = dreija.port();
 const logger = tracer.colorConsole();
 
 const app = express();
-
-/**
- * Cached templates
- * @constant {Object}
- */
-const templateCache = {};
 
 
 

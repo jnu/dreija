@@ -14,7 +14,6 @@ const RUNTIME_PATH = path.resolve(__dirname, '..', '.dev', 'runtime.js');
 const INITIAL_DEV_PUBLIC_PATH = config[0].output && config[0].output.publicPath || '/';
 const CLIENT_PUBLIC_PATH = `http://localhost:8080${INITIAL_DEV_PUBLIC_PATH}`;
 
-
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Load dreija config
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -35,7 +34,10 @@ const dreijaResolveAliasConfig = {
 };
 
 fs.writeFileSync(RUNTIME_PATH, `module.exports=${JSON.stringify({
-    clientBundlePath: `${CLIENT_PUBLIC_PATH}${CLIENT_BUNDLE_NAME}`
+    headScripts: [
+        `http://localhost:${DEV_SERVER_PORT}/webpack-dev-server.js`,
+        `${CLIENT_PUBLIC_PATH}${CLIENT_BUNDLE_NAME}`
+    ]
 })};`, 'utf8');
 
 
@@ -72,7 +74,6 @@ function startClientDevServer() {
     if (!clientDevServer) {
         clientDevServer = new WebpackDevServer(clientCompiler, {
             historyApiFallback: true,
-            inline: true,
             filename: CLIENT_BUNDLE_NAME,
             stats: {
                 colors: true
