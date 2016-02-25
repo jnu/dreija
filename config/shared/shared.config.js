@@ -32,6 +32,10 @@ var config = {
                     'url-loader?limit=20000&mimetype=image/png&name=[hash].[ext]',
                     'image-webpack?{progressive:true, optimizationLevel: 7, pngquant:{quality: "50-90", speed: 2}}'
                 ]
+            },
+            {
+                test: /\.html$/,
+                loader: 'html'
             }
         ],
         noParse: [/node_modules[\/\\]tracer/]

@@ -4,7 +4,6 @@
 var path = require('path');
 var deepMerge = require('../../lib/deepMerge');
 var sharedConfig = require('../shared/shared.config');
-var HtmlWebpackPlugin = require('html-webpack-plugin');
 
 
 const APP_ROOT = path.resolve(__dirname, '..', '..', 'src', 'client');
@@ -35,19 +34,7 @@ var config = {
                 loaders: ['style', 'css', 'less']
             }
         ]
-    },
-
-    plugins: [
-
-        new HtmlWebpackPlugin({
-            // Relative to outputPath, which is public/. The template is not
-            // actually public, but served from the express server.
-            filename: '../index.html',
-            template: '../template/index.html',
-            inject: 'head'
-        })
-
-    ]
+    }
 
 };
 

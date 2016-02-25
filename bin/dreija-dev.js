@@ -3,9 +3,16 @@ var webpack = require('webpack');
 var deepMerge = require('../lib/deepMerge');
 var nodemon = require('nodemon');
 var path = require('path');
+var fs = require('fs');
+var config = require('../webpack.config');
+const logger = require('tracer').colorConsole();
 
 
-var DEV_SERVER_PORT = 8080;
+const DEV_SERVER_PORT = 8080;
+const CLIENT_BUNDLE_NAME = 'client.js';
+const RUNTIME_PATH = path.resolve(__dirname, '..', '.dev', 'runtime.js');
+const INITIAL_DEV_PUBLIC_PATH = config[0].output && config[0].output.publicPath || '/';
+const CLIENT_PUBLIC_PATH = `http://localhost:8080${INITIAL_DEV_PUBLIC_PATH}`;
 
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -16,15 +23,20 @@ const argv = process.argv.slice();
 if (argv[0] === 'node') {
     argv.shift();
 }
-var dreijaConfig = path.resolve(__dirname, '..', 'dummyconfig.js');
+const dreijaConfig = path.resolve(__dirname, '..', 'dummyconfig.js');
 
-var dreijaResolveAliasConfig = {
+const dreijaResolveAliasConfig = {
     resolve: {
         alias: {
-            'dreija-config$': dreijaConfig
+            'dreija-config$': dreijaConfig,
+            'dreija-runtime$': RUNTIME_PATH
         }
     }
 };
+
+fs.writeFileSync(RUNTIME_PATH, `module.exports=${JSON.stringify({
+    clientBundlePath: `${CLIENT_PUBLIC_PATH}${CLIENT_BUNDLE_NAME}`
+})};`, 'utf8');
 
 
 
@@ -34,10 +46,9 @@ var dreijaResolveAliasConfig = {
 
 
 // Load webpack config
-var config = require('../webpack.config');
 var clientConfig = deepMerge(config[0], dreijaResolveAliasConfig, {
     output: {
-        publicPath: 'http://localhost:8080' + (config[0].output && config[0].output.publicPath || '/')
+        publicPath: CLIENT_PUBLIC_PATH
     }
 });
 
@@ -55,20 +66,26 @@ var serverCompiler = webpack(serverConfig);
 
 
 
+
 var clientDevServer;
 function startClientDevServer() {
     if (!clientDevServer) {
         clientDevServer = new WebpackDevServer(clientCompiler, {
             historyApiFallback: true,
-            inline: true
+            inline: true,
+            filename: CLIENT_BUNDLE_NAME,
+            stats: {
+                colors: true
+            },
+            publicPath: INITIAL_DEV_PUBLIC_PATH
         });
 
         clientDevServer.listen(DEV_SERVER_PORT, 'localhost', function(err) {
             if (err) {
                 throw err;
             }
-            console.log('Dev server listening on port', DEV_SERVER_PORT)
-        })
+            logger.trace('Dev server listening on port', DEV_SERVER_PORT);
+        });
     }
 }
 
@@ -83,25 +100,27 @@ function startServer() {
 
         nodemon
             .on('start', function() {
-                console.log('Started server');
+                logger.trace('Started server');
                 startClientDevServer();
             })
-            .on('restart', function() { console.log('Restarted server'); })
-            .on('quit', function() { console.log('Quit server'); });
+            .on('restart', function() {
+                logger.trace('Restarted server');
+            })
+            .on('quit', function() { logger.trace('Quit server'); });
 
         serverStarted = true;
     }
 }
 
 
-var serverWatcher = serverCompiler.watch({
+serverCompiler.watch({
     aggregateTimeout: 300
 }, function(err, stats) {
     if (err) {
         throw err;
     }
 
-    console.log(stats.toString({ colors: true }));
+    logger.trace(stats.toString({ colors: true }));
 
     if (stats.hasErrors()) {
         throw new Error('Errors occurred during server compilation');

@@ -11,18 +11,27 @@ import { encode } from '../shared/lib/encoding';
 import Immutable from 'immutable';
 import dreija from '../../';
 import configureStore from '../shared/configureStore';
-
+import template from '../template/index.html';
+import runtime from 'dreija-runtime';
 
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Constants
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+const tpl = template.replace(
+    '<!-- BUNDLE -->',
+    `<script src="${runtime.clientBundlePath}"></script>`
+);
+
+
 const Root = dreija.root();
 
 const routes = dreija.routes();
 
 const DB_HOST = dreija.dbhost();
+
+const DB_NAME = dreija.dbname();
 
 const PORT = dreija.port();
 
@@ -36,25 +45,6 @@ const app = express();
  */
 const templateCache = {};
 
-
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// Helpers
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-/**
- * Load the template from the specified path. Result is cached, only loaded
- * once.
- * @param  {string} fn - template file name
- * @return {string}
- */
-function getTemplate(fn) {
-    if (templateCache.hasOwnProperty(fn)) {
-        return templateCache[fn];
-    }
-
-    return (templateCache[fn] = fs.readFileSync(fn, 'utf-8'));
-}
 
 
 
@@ -102,7 +92,6 @@ app.use(spiderDetector.middleware());
 // gets called (unless one of the db routes got matched above).
 app.use(function handleIndexRoute(req, res, next) {
     const USE_STATIC = req.isSpider();
-    const tpl = getTemplate(path.join('.', 'dist', 'index.html'));
 
     res.header('Content-Type', 'text/html; charset=utf-8');
 
