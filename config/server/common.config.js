@@ -11,7 +11,8 @@ var BannerPlugin = require('webpack/lib/BannerPlugin');
 const APP_ROOT = path.resolve(__dirname, '..', '..', 'src', 'server');
 
 // Use CommonJS requires for node modules. Everything else will be bundled.
-const externals = fs.readdirSync('node_modules')
+const nodeModules = path.resolve(__dirname, '..', '..', 'node_modules');
+const externals = fs.readdirSync(nodeModules)
     .reduce(function(hash, dep) {
         if (['.bin'].indexOf(dep) === -1) {
             hash[dep] = 'commonjs ' + dep;
@@ -27,7 +28,7 @@ var config = {
     target: 'node',
 
     entry: {
-        server: './app.js'
+        server: './server.js'
     },
 
     resolve: {

@@ -22,6 +22,10 @@ const Root = dreija.root();
 
 const routes = dreija.routes();
 
+const DB_HOST = dreija.dbhost();
+
+const PORT = dreija.port();
+
 const logger = tracer.colorConsole();
 
 const app = express();

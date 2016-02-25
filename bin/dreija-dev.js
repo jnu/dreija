@@ -1,4 +1,3 @@
-var MemoryFS = require('memory-fs');
 var WebpackDevServer = require('webpack-dev-server');
 var webpack = require('webpack');
 var deepMerge = require('../lib/deepMerge');
@@ -13,12 +12,11 @@ var DEV_SERVER_PORT = 8080;
 // Load dreija config
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-var dreijaConfig = process.argv[1];
-
-if (!dreijaConfig) {
-    console.error('Dreija config file must be passed.');
-    process.exit(1);
+const argv = process.argv.slice();
+if (argv[0] === 'node') {
+    argv.shift();
 }
+var dreijaConfig = path.resolve(__dirname, '..', 'dummyconfig.js');
 
 var dreijaResolveAliasConfig = {
     resolve: {
@@ -53,7 +51,6 @@ var serverConfig = deepMerge(config[1], dreijaResolveAliasConfig, {
 });
 
 
-var fs = new MemoryFS();
 var serverCompiler = webpack(serverConfig);
 
 

@@ -1,5 +1,8 @@
 import dreijaConfig from 'dreija-config';
 import { Root } from './src/shared/components'
+import { Route } from 'react-router';
+import React from 'react';
+
 
 class Dreija {
 
@@ -56,8 +59,14 @@ class Dreija {
 }
 
 
+const DummyDefaultCmp = () => <div>It works!</div>;
+
+
 const dreija =  new Dreija({
-    port: 3000,
+    port: 3030,
+    routes: (
+        <Route path="/" component="DummyDefaultCmp" />
+    ),
     dbhost: 'http://localhost:5984',
     root: Root
 });
