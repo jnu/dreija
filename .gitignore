@@ -1,0 +1,12 @@
+.DS_Store
+*.dump
+*.psd
+*.log
+*.pkghash
+img/src/
+deprecated/
+node_modules/
+dist/
+tmp/
+server.pid
+.dev/
