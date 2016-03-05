@@ -1,16 +1,19 @@
-var WebpackDevServer = require('webpack-dev-server');
-var webpack = require('webpack');
-var deepMerge = require('../lib/deepMerge');
-var nodemon = require('nodemon');
-var path = require('path');
-var fs = require('fs');
-var config = require('../webpack.config');
+const WebpackDevServer = require('webpack-dev-server');
+const webpack = require('webpack');
+const deepMerge = require('../lib/deepMerge');
+const nodemon = require('nodemon');
+const path = require('path');
+const fs = require('fs');
+const mkdirp = require('mkdirp');
+const config = require('../webpack.config');
 const logger = require('tracer').colorConsole();
 
 
 const DEV_SERVER_PORT = 8080;
 const CLIENT_BUNDLE_NAME = 'client.js';
-const RUNTIME_PATH = path.resolve(__dirname, '..', '.dev', 'runtime.js');
+const DEV_RUNTIME_DIR = path.resolve(__dirname, '..', '.dev');
+mkdirp(DEV_RUNTIME_DIR);
+const RUNTIME_PATH = path.resolve(DEV_RUNTIME_DIR, 'runtime.js');
 const INITIAL_DEV_PUBLIC_PATH = config[0].output && config[0].output.publicPath || '/';
 const CLIENT_PUBLIC_PATH = `http://localhost:8080${INITIAL_DEV_PUBLIC_PATH}`;
 
