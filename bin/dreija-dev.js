@@ -1,37 +1,56 @@
-const WebpackDevServer = require('webpack-dev-server');
-const webpack = require('webpack');
-const deepMerge = require('../lib/deepMerge');
-const nodemon = require('nodemon');
-const path = require('path');
-const fs = require('fs');
-const mkdirp = require('mkdirp');
-const config = require('../webpack.config');
-const logger = require('tracer').colorConsole();
+var WebpackDevServer = require('webpack-dev-server');
+var webpack = require('webpack');
+var deepMerge = require('../lib/deepMerge');
+var nodemon = require('nodemon');
+var path = require('path');
+var fs = require('fs');
+var mkdirp = require('mkdirp');
+var config = require('../webpack.config');
+var logger = require('tracer').colorConsole();
 
 
-const DEV_SERVER_PORT = 8080;
-const CLIENT_BUNDLE_NAME = 'client.js';
-const DEV_RUNTIME_DIR = path.resolve(__dirname, '..', '.dev');
+var DEV_SERVER_PORT = 8080;
+var CLIENT_BUNDLE_NAME = 'client.js';
+var DEV_RUNTIME_DIR = path.resolve(__dirname, '..', '.dev');
 mkdirp(DEV_RUNTIME_DIR);
-const RUNTIME_PATH = path.resolve(DEV_RUNTIME_DIR, 'runtime.js');
-const INITIAL_DEV_PUBLIC_PATH = config[0].output && config[0].output.publicPath || '/';
-const CLIENT_PUBLIC_PATH = `http://localhost:8080${INITIAL_DEV_PUBLIC_PATH}`;
+var RUNTIME_PATH = path.resolve(DEV_RUNTIME_DIR, 'runtime.js');
+var ENV_PATH = path.resolve(DEV_RUNTIME_DIR, 'env.js');
+var INITIAL_DEV_PUBLIC_PATH = config[0].output && config[0].output.publicPath || '/';
+var CLIENT_PUBLIC_PATH = `http://localhost:8080${INITIAL_DEV_PUBLIC_PATH}`;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Load dreija config
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-const argv = process.argv.slice();
-if (argv[0] === 'node') {
-    argv.shift();
-}
-const dreijaConfig = path.resolve(__dirname, '..', 'dummyconfig.js');
+var argv = process.argv.slice();
+var dreijaConfig = path.resolve(__dirname, '..', 'src', 'app', 'dummyconfig.js');
+var startedParse = false;
+var arg;
 
-const dreijaResolveAliasConfig = {
+while (argv.length) {
+    arg = argv.shift();
+    switch (arg) {
+        case '-a':
+        case '--app':
+            startedParse = true;
+            dreijaConfig = path.resolve(process.cwd(), argv.shift());
+            break;
+        default:
+            if (startedParse) {
+                console.error(`Unexpected argument: ${arg}`);
+            }
+    }
+}
+
+
+console.info(`Using config ${dreijaConfig}`);
+
+var dreijaResolveAliasConfig = {
     resolve: {
         alias: {
             'dreija-config$': dreijaConfig,
-            'dreija-runtime$': RUNTIME_PATH
+            'dreija-runtime$': RUNTIME_PATH,
+            'dreija-env$': ENV_PATH
         }
     }
 };
@@ -42,6 +61,10 @@ fs.writeFileSync(RUNTIME_PATH, `module.exports=${JSON.stringify({
         `${CLIENT_PUBLIC_PATH}${CLIENT_BUNDLE_NAME}`
     ]
 })};`, 'utf8');
+
+fs.writeFileSync(ENV_PATH, `module.exports=${JSON.stringify({
+    DBHOSTNAME: process.env.DBHOSTNAME
+})}`);
 
 
 

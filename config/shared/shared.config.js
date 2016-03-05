@@ -15,6 +15,10 @@ var config = {
         }
     },
 
+    resolveLoader: {
+        root: path.resolve(__dirname, '..', '..', 'node_modules')
+    },
+
     output: {
         publicPath: '/public/'
     },
