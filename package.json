@@ -40,8 +40,6 @@
     "mkdirp": "^0.5.1",
     "node-fetch": "git+https://github.com/jnu/node-fetch.git#realerror",
     "nodemon": "^1.8.1",
-    "react": "^0.14.7",
-    "react-dom": "^0.14.7",
     "react-redux": "^4.2.1",
     "react-router": "^2.0.0",
     "react-router-redux": "^3.0.0",
@@ -58,6 +56,10 @@
     "webpack-dev-middleware": "^1.5.1",
     "webpack-dev-server": "^1.14.1",
     "webpack-hot-middleware": "^2.6.4"
+  },
+  "peerDependencies": {
+    "react": "^0.14.7",
+    "react-dom": "^0.14.7"
   },
   "scripts": {
     "clean": "make clean",
