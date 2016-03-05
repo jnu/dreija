@@ -7,7 +7,13 @@ var fs = require('fs');
 var mkdirp = require('mkdirp');
 var config = require('../webpack.config');
 var logger = require('tracer').colorConsole();
+var formatWebpackStats = require('./console-format-helpers').formatWebpackStats;
 
+
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Constants
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 var DEV_SERVER_PORT = 8080;
 var CLIENT_BUNDLE_NAME = 'client.js';
@@ -18,8 +24,10 @@ var ENV_PATH = path.resolve(DEV_RUNTIME_DIR, 'env.js');
 var INITIAL_DEV_PUBLIC_PATH = config[0].output && config[0].output.publicPath || '/';
 var CLIENT_PUBLIC_PATH = `http://localhost:8080${INITIAL_DEV_PUBLIC_PATH}`;
 
+
+
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// Load dreija config
+// Parse CLI
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 var argv = process.argv.slice();
@@ -42,8 +50,13 @@ while (argv.length) {
     }
 }
 
+logger.info(`Using config ${dreijaConfig}`);
 
-console.info(`Using config ${dreijaConfig}`);
+
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Write dynamic modules
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 var dreijaResolveAliasConfig = {
     resolve: {
@@ -69,9 +82,8 @@ fs.writeFileSync(ENV_PATH, `module.exports=${JSON.stringify({
 
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// Load & reconfigure Webpack config
+// Webpack config
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 
 // Load webpack config
 var clientConfig = deepMerge(config[0], dreijaResolveAliasConfig, {
@@ -85,25 +97,34 @@ var clientCompiler = webpack(clientConfig);
 
 var serverConfig = deepMerge(config[1], dreijaResolveAliasConfig, {
     output: {
-        path: path.join(__dirname, '..', '.dev')
+        path: path.join(__dirname, '..', '.dev'),
+        publicPath: CLIENT_PUBLIC_PATH
     }
 });
-
 
 var serverCompiler = webpack(serverConfig);
 
 
 
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Servers
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 var clientDevServer;
 function startClientDevServer() {
     if (!clientDevServer) {
+        logger.trace('\nBuilding client bundle and starting live reload server');
+
+        clientCompiler.plugin("done", function onFinishedCompile(stats) {
+            logger.log(formatWebpackStats('Dreija client', stats));
+
+            logger.trace('\nFinished building client');
+        });
+
         clientDevServer = new WebpackDevServer(clientCompiler, {
             historyApiFallback: true,
             filename: CLIENT_BUNDLE_NAME,
-            stats: {
-                colors: true
-            },
+            stats: false,
             publicPath: INITIAL_DEV_PUBLIC_PATH
         });
 
@@ -115,7 +136,6 @@ function startClientDevServer() {
         });
     }
 }
-
 
 var serverStarted = false;
 function startServer() {
@@ -140,6 +160,7 @@ function startServer() {
 }
 
 
+
 serverCompiler.watch({
     aggregateTimeout: 300
 }, function(err, stats) {
@@ -147,7 +168,7 @@ serverCompiler.watch({
         throw err;
     }
 
-    logger.trace(stats.toString({ colors: true }));
+    logger.log(formatWebpackStats('Dreija server', stats));
 
     if (stats.hasErrors()) {
         throw new Error('Errors occurred during server compilation');
