@@ -43,15 +43,12 @@ var CLIENT_PUBLIC_PATH = `http://localhost:8080${INITIAL_DEV_PUBLIC_PATH}`;
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 var argv = process.argv.slice();
-var dreijaConfig = path.resolve(__dirname, '..', 'src', 'app', 'dummyconfig.js');
-var startedParse = false;
+var dreijaConfig = path.resolve(__dirname, '..', 'src', 'app', 'demo', 'app.js');
 var env = {};
 var arg;
 var envValParts;
 var secretFilePath;
-var secrets = {
-    sessionSecret: 'this is not secret'
-};
+
 
 while (argv.length) {
     arg = argv.shift();
@@ -68,16 +65,10 @@ while (argv.length) {
         case '-s':
         case '--secrets':
             secretFilePath = path.resolve(process.cwd(), argv.shift());
-            try {
-                secrets = JSON.parse(fs.readFileSync(secretFilePath, 'utf-8'));
-            } catch (e) {
-                logger.error('Error parsing secrets file. It should be JSON.', e);
-                process.exit(1);
-            }
             break;
         default:
-            if (arv.length < process.argv.length) {
-                logger.error(`Unexpected argument: ${arg}`);
+            if (arg[0] === '-') {
+                logger.warn(`Unexpected argument: ${arg}`);
             }
     }
 }
@@ -169,8 +160,18 @@ function startClientDevServer() {
 
 var serverStarted = false;
 function startServer() {
+    var scriptArgs;
+
     if (!serverStarted) {
+        scriptArgs = [];
+
+        // Load secrets if they were provided
+        if (secretFilePath) {
+            scriptArgs.push.apply(scriptArgs, ['-s', secretFilePath]);
+        }
+
         nodemon({
+            args: scriptArgs,
             script: path.join(__dirname, '..', '.dev', 'server.js'),
             ext: 'js json'
         });

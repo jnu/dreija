@@ -1,4 +1,5 @@
 import path from 'path';
+import fs from 'fs';
 import express from 'express';
 import spiderDetector from 'spider-detector';
 import { renderToString, renderToStaticMarkup } from 'react-dom/server';
@@ -13,6 +14,7 @@ import template from '../template/index.html';
 import runtime from 'dreija-runtime';
 import logger from '../../lib/logger';
 import expressSession from 'express-session';
+import uuid from 'node-uuid';
 
 
 
@@ -46,6 +48,42 @@ const PORT = dreija.port();
 
 const app = express();
 
+/**
+ * Secrets. Hopefully extended / overwritten with keys provided with a CLI flag.
+ */
+const secrets = {
+    sessionSecret: 'This is not secret.'
+};
+
+
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Parse CLI
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+let argv = process.argv.slice();
+while (argv.length) {
+    let arg = argv.shift();
+    switch (arg) {
+        case '-s':
+        case '--secrets':
+            let secretsPath = argv.shift();
+            try {
+                let secretsJson = JSON.parse(
+                    fs.readFileSync(secretsPath, 'utf-8')
+                );
+                Object.assign(secrets, secretsJson);
+                logger.info('Loaded external secrets');
+            } catch (e) {
+                logger.error(`Error parsing secrets file ${secretsPath}`, e);
+            }
+            break;
+        default:
+            if (arg[0] === '-') {
+                logger.warn(`Unrecognozed flag ${arg}`);
+            }
+    }
+}
 
 
 
@@ -83,8 +121,8 @@ app.get('/db/posts/:id', proxy(DB_HOST, {
 }));
 
 app.get('/admin', expressSession({
-    genid: () => `foo`,
-    secret: dreija.secret()
+    genid: uuid.v4(),
+    secret: secrets.sessionSecret
 }));
 
 // Static assets directory

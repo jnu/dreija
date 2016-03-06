@@ -41,6 +41,7 @@
     "less-loader": "^2.2.2",
     "mkdirp": "^0.5.1",
     "node-fetch": "git+https://github.com/jnu/node-fetch.git#realerror",
+    "node-uuid": "^1.4.7",
     "nodemon": "^1.8.1",
     "react-redux": "^4.2.1",
     "react-router": "^2.0.0",
