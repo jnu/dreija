@@ -1,1 +1,1 @@
-export * from 'react-router';
+export { Route, IndexRoute, Link } from 'react-router';
