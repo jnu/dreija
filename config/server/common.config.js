@@ -11,18 +11,27 @@ var BannerPlugin = require('webpack/lib/BannerPlugin');
 var APP_ROOT = path.resolve(__dirname, '..', '..', 'src', 'server');
 
 // Use CommonJS requires for node modules. Everything else will be bundled.
-var localNodeModulesDir = path.resolve(__dirname, '..', '..', 'node_modules');
-var localNodeModules = fs.readdirSync(localNodeModulesDir);
-// TODO(jnu) this should eventually search all `node_modules` for all parent directories
-var projectNodeModulesDir = path.resolve(__dirname, '..', '..', 'node_modules');
-var projectNodeModules = fs.readdirSync(projectNodeModulesDir);
-var externals = fs.readdirSync(nodeModules.concat(projectNodeModules))
-    .reduce(function(hash, dep) {
-        if (['.bin'].indexOf(dep) === -1) {
-            hash[dep] = 'commonjs ' + dep;
-        }
-        return hash;
-    }, {});
+var projectRoot = path.resolve(__dirname, '..', '..');
+var modules = [];
+var projectRootParts = projectRoot.split(path.sep);
+var fsRoot = path.parse(projectRoot).root;
+var cwd = process.cwd();
+var testPath;
+do {
+    testPath = path.join.apply(projectRootParts.concat('node_modules'));
+    if (fs.existsSync(testPath)) {
+        modules.push.apply(
+            fs.readdirSync(testPath)
+        );
+    }
+} while (projectRootParts.pop());
+
+var externals = modules.reduce(function(hash, dep) {
+    if (['.bin'].indexOf(dep) === -1) {
+        hash[dep] = 'commonjs ' + dep;
+    }
+    return hash;
+}, {});
 
 
 var config = {

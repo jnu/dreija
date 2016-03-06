@@ -1,7 +1,6 @@
 import path from 'path';
 import express from 'express';
 import spiderDetector from 'spider-detector';
-import tracer from 'tracer';
 import { renderToString, renderToStaticMarkup } from 'react-dom/server';
 import { createElement } from 'react';
 import { match, createMemoryHistory } from 'react-router';
@@ -43,8 +42,6 @@ const DB_NAME = dreija.dbname();
 
 const PORT = dreija.port();
 
-const logger = tracer.colorConsole();
-
 const app = express();
 
 
@@ -57,7 +54,7 @@ const app = express();
 app.get('/db/posts', proxy(DB_HOST, {
     forwardPath: (req, res) => {
         const forwardPath = `/${DB_NAME}/_design/views/_view/index`;
-        logger.info(`Forwarding posts index to ${DB_HOST}${forwardPath}`);
+        console.info(`Forwarding posts index to ${DB_HOST}${forwardPath}`);
         return forwardPath;
     },
     intercept: (rsp, data, req, res, callback) => {
@@ -73,7 +70,7 @@ app.get('/db/posts', proxy(DB_HOST, {
 app.get('/db/posts/:id', proxy(DB_HOST, {
     forwardPath: (req, res) => {
         const forwardPath = `/${DB_NAME}/${req.params.id}`;
-        logger.info(`Forwarding post request to ${DB_HOST}${forwardPath}`);
+        console.info(`Forwarding post request to ${DB_HOST}${forwardPath}`);
         return forwardPath;
     },
     intercept: (rsp, data, req, res, callback) => {
@@ -97,7 +94,7 @@ app.use(function handleIndexRoute(req, res, next) {
 
     res.header('Content-Type', 'text/html; charset=utf-8');
 
-    logger.info("Handling default SPA with request", req.url);
+    console.info("Handling default SPA with request", req.url);
 
     const history = createMemoryHistory();
     history.replace(req.url);
@@ -105,20 +102,20 @@ app.use(function handleIndexRoute(req, res, next) {
     // Run router to match requests
     match({ routes, history }, (err, redirectLocation, renderProps) => {
         if (err) {
-            logger.error('Failed to match route', err);
+            console.error('Failed to match route', err);
             res.status(500).send(err);
             return;
         }
 
         if (redirectLocation) {
             const redirect = redirectLocation.pathname + redirectLocation.search;
-            logger.warn('Redirecting to', redirect);
+            console.warn('Redirecting to', redirect);
             res.redirect(redirect);
             return;
         }
 
         if (renderProps) {
-            logger.info('Rendering page');
+            console.info('Rendering page');
             // Set initial store routing state based on requested path
             const store = configureStore({
                 root: Immutable.Map(),
@@ -136,7 +133,7 @@ app.use(function handleIndexRoute(req, res, next) {
                 })
             )
                 .then(() => {
-                    logger.info('Fetched data, rendering page. Static:', USE_STATIC);
+                    console.info('Fetched data, rendering page. Static:', USE_STATIC);
 
                     // Choose renderer based on whether static markup is desired
                     const renderMethod = USE_STATIC ?
@@ -164,11 +161,11 @@ app.use(function handleIndexRoute(req, res, next) {
 
                     res.send(page);
                 }, e => {
-                    logger.error('Failed to fetch data for', req.url, 'Error:', e);
+                    console.error('Failed to fetch data for', req.url, 'Error:', e);
                 });
         }
         else {
-            logger.error('404 on', req.url);
+            console.error('404 on', req.url);
             res.status(404).send('not found');
         }
     });
@@ -183,10 +180,10 @@ app.use(function handleIndexRoute(req, res, next) {
 if (require.main === module) {
     app.listen(PORT, function handleAppStart(err) {
         if (err) {
-            logger.error(`Failed to bring up server on ${PORT}. Error: ${err}`);
+            console.error(`Failed to bring up server on ${PORT}. Error: ${err}`);
             return;
         }
-        logger.info(`Listening on ${PORT}`);
+        console.info(`Listening on ${PORT}`);
     });
 }
 else {

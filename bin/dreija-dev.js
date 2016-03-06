@@ -6,7 +6,6 @@ var path = require('path');
 var fs = require('fs');
 var mkdirp = require('mkdirp');
 var config = require('../webpack.config');
-var logger = require('tracer').colorConsole();
 var formatWebpackStats = require('./console-format-helpers').formatWebpackStats;
 
 
@@ -50,7 +49,7 @@ while (argv.length) {
     }
 }
 
-logger.info(`Using config ${dreijaConfig}`);
+console.info(`Using config ${dreijaConfig}`);
 
 
 
@@ -113,12 +112,12 @@ var serverCompiler = webpack(serverConfig);
 var clientDevServer;
 function startClientDevServer() {
     if (!clientDevServer) {
-        logger.trace('\nBuilding client bundle and starting live reload server');
+        console.info('\nBuilding client bundle and starting live reload server');
 
         clientCompiler.plugin("done", function onFinishedCompile(stats) {
-            logger.log(formatWebpackStats('Dreija client', stats));
+            console.log(formatWebpackStats('Dreija client', stats));
 
-            logger.trace('\nFinished building client');
+            console.info('\nFinished building client');
         });
 
         clientDevServer = new WebpackDevServer(clientCompiler, {
@@ -132,7 +131,7 @@ function startClientDevServer() {
             if (err) {
                 throw err;
             }
-            logger.trace('Dev server listening on port', DEV_SERVER_PORT);
+            console.info('Dev server listening on port', DEV_SERVER_PORT);
         });
     }
 }
@@ -147,13 +146,13 @@ function startServer() {
 
         nodemon
             .on('start', function() {
-                logger.trace('Started server');
+                console.info('Started server');
                 startClientDevServer();
             })
             .on('restart', function() {
-                logger.trace('Restarted server');
+                console.info('Restarted server');
             })
-            .on('quit', function() { logger.trace('Quit server'); });
+            .on('quit', function() { console.info('Quit server'); });
 
         serverStarted = true;
     }
@@ -168,7 +167,7 @@ serverCompiler.watch({
         throw err;
     }
 
-    logger.log(formatWebpackStats('Dreija server', stats));
+    console.log(formatWebpackStats('Dreija server', stats));
 
     if (stats.hasErrors()) {
         throw new Error('Errors occurred during server compilation');
