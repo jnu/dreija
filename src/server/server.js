@@ -15,9 +15,8 @@ import runtime from 'dreija-runtime';
 import logger from '../../lib/logger';
 import expressSession from 'express-session';
 import uuid from 'node-uuid';
-// import combineRoutes from '../shared/lib/util/combineRoutes';
-// import defaultAdminRoutes from '../../app/admin';
 import ensureArray from '../shared/lib/util/ensureArray';
+import csurf from 'csurf';
 
 
 
@@ -94,6 +93,20 @@ while (argv.length) {
 // Routes
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+// Handle admin route with sessions
+app.use(expressSession({
+    genid: () => uuid.v4(),
+    secret: secrets.sessionSecret,
+    resave: true,
+    saveUninitialized: false
+}));
+
+app.use(csurf());
+
+app.post('/auth', (req, res) => {
+
+});
+
 app.get('/db/posts', proxy(DB_HOST, {
     forwardPath: (req, res) => {
         const forwardPath = `/${DB_NAME}/_design/views/_view/index`;
@@ -128,19 +141,6 @@ app.use('/public', express.static(path.join('.', 'dist', 'public')));
 
 // Detect when static pages should be sent
 app.use(spiderDetector.middleware());
-
-// Handle admin route with sessions
-app.get('/admin', expressSession({
-    genid: () => uuid.v4(),
-    secret: secrets.sessionSecret,
-    resave: true,
-    saveUninitialized: false
-}));
-
-app.get('/admin', (req, res, next) => {
-    logger.trace(req.session);
-    next();
-});
 
 
 // Single page app = single route handler. Define as middleware so it always
