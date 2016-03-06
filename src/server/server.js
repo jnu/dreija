@@ -12,6 +12,7 @@ import configureStore from '../shared/configureStore';
 import template from '../template/index.html';
 import runtime from 'dreija-runtime';
 import logger from '../../lib/logger';
+import expressSession from 'express-session';
 
 
 
@@ -79,6 +80,11 @@ app.get('/db/posts/:id', proxy(DB_HOST, {
         res.set('transfer-encoding', '');
         callback(null, data);
     }
+}));
+
+app.get('/admin', expressSession({
+    genid: () => `foo`,
+    secret: dreija.secret()
 }));
 
 // Static assets directory

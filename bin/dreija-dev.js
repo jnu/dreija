@@ -48,23 +48,35 @@ var startedParse = false;
 var env = {};
 var arg;
 var envValParts;
+var secretFilePath;
+var secrets = {
+    sessionSecret: 'this is not secret'
+};
 
 while (argv.length) {
     arg = argv.shift();
     switch (arg) {
         case '-a':
         case '--app':
-            startedParse = true;
             dreijaConfig = path.resolve(process.cwd(), argv.shift());
             break;
         case '-e':
         case '--env':
-            startedParse = true;
             envValParts = argv.shift().split('=');
             env[envValParts[0]] = envValParts[1];
             break;
+        case '-s':
+        case '--secrets':
+            secretFilePath = path.resolve(process.cwd(), argv.shift());
+            try {
+                secrets = JSON.parse(fs.readFileSync(secretFilePath, 'utf-8'));
+            } catch (e) {
+                logger.error('Error parsing secrets file. It should be JSON.', e);
+                process.exit(1);
+            }
+            break;
         default:
-            if (startedParse) {
+            if (arv.length < process.argv.length) {
                 logger.error(`Unexpected argument: ${arg}`);
             }
     }
