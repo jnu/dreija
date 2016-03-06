@@ -7,6 +7,19 @@ var fs = require('fs');
 var mkdirp = require('mkdirp');
 var config = require('../webpack.config');
 var formatWebpackStats = require('./console-format-helpers').formatWebpackStats;
+var logger = require('../lib/logger');
+
+
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Branding
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+logger.raw(logger.colors.BROWN);
+logger.raw(fs.readFileSync(path.resolve(__dirname, 'brand.txt'), 'utf-8'));
+logger.raw(logger.colors.YELLOW);
+logger.raw('-- dev mode --\n\n');
+logger.raw(logger.colors.NONE);
 
 
 
@@ -32,7 +45,9 @@ var CLIENT_PUBLIC_PATH = `http://localhost:8080${INITIAL_DEV_PUBLIC_PATH}`;
 var argv = process.argv.slice();
 var dreijaConfig = path.resolve(__dirname, '..', 'src', 'app', 'dummyconfig.js');
 var startedParse = false;
+var env = {};
 var arg;
+var envValParts;
 
 while (argv.length) {
     arg = argv.shift();
@@ -42,14 +57,19 @@ while (argv.length) {
             startedParse = true;
             dreijaConfig = path.resolve(process.cwd(), argv.shift());
             break;
+        case '-e':
+        case '--env':
+            startedParse = true;
+            envValParts = argv.shift().split('=');
+            env[envValParts[0]] = envValParts[1];
         default:
             if (startedParse) {
-                console.error(`Unexpected argument: ${arg}`);
+                logger.error(`Unexpected argument: ${arg}`);
             }
     }
 }
 
-console.info(`Using config ${dreijaConfig}`);
+logger.info(`Using config ${dreijaConfig}`);
 
 
 
@@ -74,9 +94,7 @@ fs.writeFileSync(RUNTIME_PATH, `module.exports=${JSON.stringify({
     ]
 })};`, 'utf8');
 
-fs.writeFileSync(ENV_PATH, `module.exports=${JSON.stringify({
-    DBHOSTNAME: process.env.DBHOSTNAME
-})}`);
+fs.writeFileSync(ENV_PATH, `module.exports=${JSON.stringify(env)}`);
 
 
 
@@ -112,12 +130,12 @@ var serverCompiler = webpack(serverConfig);
 var clientDevServer;
 function startClientDevServer() {
     if (!clientDevServer) {
-        console.info('\nBuilding client bundle and starting live reload server');
+        logger.info('Building client bundle and starting live reload server');
 
         clientCompiler.plugin("done", function onFinishedCompile(stats) {
-            console.log(formatWebpackStats('Dreija client', stats));
+            logger.raw(formatWebpackStats('Dreija client', stats));
 
-            console.info('\nFinished building client');
+            logger.info('Finished building client');
         });
 
         clientDevServer = new WebpackDevServer(clientCompiler, {
@@ -131,7 +149,7 @@ function startClientDevServer() {
             if (err) {
                 throw err;
             }
-            console.info('Dev server listening on port', DEV_SERVER_PORT);
+            logger.info('Dev server listening on port', DEV_SERVER_PORT);
         });
     }
 }
@@ -146,13 +164,13 @@ function startServer() {
 
         nodemon
             .on('start', function() {
-                console.info('Started server');
+                logger.info('Started server');
                 startClientDevServer();
             })
             .on('restart', function() {
-                console.info('Restarted server');
+                logger.info('Restarted server');
             })
-            .on('quit', function() { console.info('Quit server'); });
+            .on('quit', function() { logger.info('Quit server'); });
 
         serverStarted = true;
     }
@@ -167,7 +185,7 @@ serverCompiler.watch({
         throw err;
     }
 
-    console.log(formatWebpackStats('Dreija server', stats));
+    logger.raw(formatWebpackStats('Dreija server', stats));
 
     if (stats.hasErrors()) {
         throw new Error('Errors occurred during server compilation');

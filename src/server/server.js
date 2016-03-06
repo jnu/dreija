@@ -11,6 +11,7 @@ import dreija from '../../';
 import configureStore from '../shared/configureStore';
 import template from '../template/index.html';
 import runtime from 'dreija-runtime';
+import logger from '../../lib/logger';
 
 
 
@@ -54,7 +55,7 @@ const app = express();
 app.get('/db/posts', proxy(DB_HOST, {
     forwardPath: (req, res) => {
         const forwardPath = `/${DB_NAME}/_design/views/_view/index`;
-        console.info(`Forwarding posts index to ${DB_HOST}${forwardPath}`);
+        logger.info(`Forwarding posts index to ${DB_HOST}${forwardPath}`);
         return forwardPath;
     },
     intercept: (rsp, data, req, res, callback) => {
@@ -70,7 +71,7 @@ app.get('/db/posts', proxy(DB_HOST, {
 app.get('/db/posts/:id', proxy(DB_HOST, {
     forwardPath: (req, res) => {
         const forwardPath = `/${DB_NAME}/${req.params.id}`;
-        console.info(`Forwarding post request to ${DB_HOST}${forwardPath}`);
+        logger.info(`Forwarding post request to ${DB_HOST}${forwardPath}`);
         return forwardPath;
     },
     intercept: (rsp, data, req, res, callback) => {
@@ -94,7 +95,7 @@ app.use(function handleIndexRoute(req, res, next) {
 
     res.header('Content-Type', 'text/html; charset=utf-8');
 
-    console.info("Handling default SPA with request", req.url);
+    logger.info("Handling default SPA with request", req.url);
 
     const history = createMemoryHistory();
     history.replace(req.url);
@@ -102,20 +103,20 @@ app.use(function handleIndexRoute(req, res, next) {
     // Run router to match requests
     match({ routes, history }, (err, redirectLocation, renderProps) => {
         if (err) {
-            console.error('Failed to match route', err);
+            logger.error('Failed to match route', err);
             res.status(500).send(err);
             return;
         }
 
         if (redirectLocation) {
             const redirect = redirectLocation.pathname + redirectLocation.search;
-            console.warn('Redirecting to', redirect);
+            logger.warn('Redirecting to', redirect);
             res.redirect(redirect);
             return;
         }
 
         if (renderProps) {
-            console.info('Rendering page');
+            logger.info('Rendering page');
             // Set initial store routing state based on requested path
             const store = configureStore({
                 root: Immutable.Map(),
@@ -133,7 +134,7 @@ app.use(function handleIndexRoute(req, res, next) {
                 })
             )
                 .then(() => {
-                    console.info('Fetched data, rendering page. Static:', USE_STATIC);
+                    logger.info('Fetched data, rendering page. Static:', USE_STATIC);
 
                     // Choose renderer based on whether static markup is desired
                     const renderMethod = USE_STATIC ?
@@ -161,11 +162,11 @@ app.use(function handleIndexRoute(req, res, next) {
 
                     res.send(page);
                 }, e => {
-                    console.error('Failed to fetch data for', req.url, 'Error:', e);
+                    logger.error('Failed to fetch data for', req.url, 'Error:', e);
                 });
         }
         else {
-            console.error('404 on', req.url);
+            logger.error('404 on', req.url);
             res.status(404).send('not found');
         }
     });
@@ -180,10 +181,10 @@ app.use(function handleIndexRoute(req, res, next) {
 if (require.main === module) {
     app.listen(PORT, function handleAppStart(err) {
         if (err) {
-            console.error(`Failed to bring up server on ${PORT}. Error: ${err}`);
+            logger.error(`Failed to bring up server on ${PORT}. Error: ${err}`);
             return;
         }
-        console.info(`Listening on ${PORT}`);
+        logger.info(`Listening on ${PORT}`);
     });
 }
 else {
