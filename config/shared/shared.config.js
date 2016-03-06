@@ -27,7 +27,7 @@ var config = {
         loaders: [
             {
                 test: /\.jsx?$/,
-                exclude: /node_modules/,
+                exclude: /node_modules[\/\\](?!dreija)/,
                 loader: 'babel?cacheDirectory'
             },
             {
@@ -40,6 +40,10 @@ var config = {
             {
                 test: /\.html$/,
                 loader: 'html'
+            },
+            {
+                test: /\.json$/,
+                loader: 'json'
             }
         ],
         noParse: [/node_modules[\/\\]tracer/]
