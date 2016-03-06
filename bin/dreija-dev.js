@@ -62,6 +62,7 @@ while (argv.length) {
             startedParse = true;
             envValParts = argv.shift().split('=');
             env[envValParts[0]] = envValParts[1];
+            break;
         default:
             if (startedParse) {
                 logger.error(`Unexpected argument: ${arg}`);
