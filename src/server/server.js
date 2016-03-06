@@ -103,8 +103,9 @@ app.use(expressSession({
 
 app.use(csurf());
 
+// Authentication
 app.post('/auth', (req, res) => {
-
+    // TODO authenticate
 });
 
 app.get('/db/posts', proxy(DB_HOST, {
@@ -122,6 +123,10 @@ app.get('/db/posts', proxy(DB_HOST, {
         callback(null, data);
     }
 }));
+
+// TODO post route for creating posts
+// TODO put route for updating posts
+// TODO delete route for deleting posts
 
 app.get('/db/posts/:id', proxy(DB_HOST, {
     forwardPath: (req, res) => {
