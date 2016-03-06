@@ -2,7 +2,7 @@
  * @fileOverview Defines defaults in case user didn't provide any to the CLI.
  * Use this as an opportunity to render documentation.
  */
-import { Route } from 'react-router';
+import { Route } from '../../../router';
 import React from 'react';
 
 
