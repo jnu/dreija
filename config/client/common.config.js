@@ -30,7 +30,7 @@ var config = {
         loaders: [
             {
                 test: /\.less$/,
-                exclude: /node_modules/,
+                exclude: /node_modules[\.\\](?!dreija)/,
                 loaders: ['style', 'css', 'less']
             }
         ]

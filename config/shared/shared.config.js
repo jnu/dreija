@@ -46,7 +46,7 @@ var config = {
                 loader: 'json'
             }
         ],
-        noParse: [/node_modules[\/\\]tracer/]
+        noParse: [new RegExp(path.join(__dirname, '..', '..', 'node_modules', 'tracer').replace('.', '\.'))]
     },
 
     plugins: [
