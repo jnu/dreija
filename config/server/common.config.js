@@ -8,11 +8,15 @@ var sharedConfig = require('../shared/shared.config');
 var BannerPlugin = require('webpack/lib/BannerPlugin');
 
 
-const APP_ROOT = path.resolve(__dirname, '..', '..', 'src', 'server');
+var APP_ROOT = path.resolve(__dirname, '..', '..', 'src', 'server');
 
 // Use CommonJS requires for node modules. Everything else will be bundled.
-const nodeModules = path.resolve(__dirname, '..', '..', 'node_modules');
-const externals = fs.readdirSync(nodeModules)
+var localNodeModulesDir = path.resolve(__dirname, '..', '..', 'node_modules');
+var localNodeModules = fs.readdirSync(localNodeModulesDir);
+// TODO(jnu) this should eventually search all `node_modules` for all parent directories
+var projectNodeModulesDir = path.resolve(__dirname, '..', '..', 'node_modules');
+var projectNodeModules = fs.readdirSync(projectNodeModulesDir);
+var externals = fs.readdirSync(nodeModules.concat(projectNodeModules))
     .reduce(function(hash, dep) {
         if (['.bin'].indexOf(dep) === -1) {
             hash[dep] = 'commonjs ' + dep;
