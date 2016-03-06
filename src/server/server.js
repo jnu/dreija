@@ -15,8 +15,8 @@ import runtime from 'dreija-runtime';
 import logger from '../../lib/logger';
 import expressSession from 'express-session';
 import uuid from 'node-uuid';
-import combineRoutes from '../shared/lib/util/combineRoutes';
-import defaultAdminRoutes from '../../app/admin';
+// import combineRoutes from '../shared/lib/util/combineRoutes';
+// import defaultAdminRoutes from '../../app/admin';
 import ensureArray from '../shared/lib/util/ensureArray';
 
 
