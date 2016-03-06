@@ -6,6 +6,9 @@
     "type": "git",
     "url": "git://github.com/jnu/dreija.git"
   },
+  "bin": {
+    "dreija-dev": "./lib/cli/dreija-dev.js"
+  },
   "author": "Joe Nudell",
   "license": "BSD",
   "readmeFilename": "README.md",
@@ -71,6 +74,7 @@
     "up": "make up"
   },
   "devDependencies": {
+    "karma": "^0.13.21",
     "react": "^0.14.7",
     "react-dom": "^0.14.7"
   }

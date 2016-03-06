@@ -15,6 +15,9 @@ import runtime from 'dreija-runtime';
 import logger from '../../lib/logger';
 import expressSession from 'express-session';
 import uuid from 'node-uuid';
+import combineRoutes from '../shared/lib/util/combineRoutes';
+import defaultAdminRoutes from '../../app/admin';
+import ensureArray from '../shared/lib/util/ensureArray';
 
 
 
@@ -24,10 +27,10 @@ import uuid from 'node-uuid';
 // Dynamic module injected by the build
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-const ensureArray = A => Array.isArray(A) ? A : [A];
 const { headScripts } = runtime;
 const headScriptBlock = headScripts ?
     ensureArray(headScripts).map(s => `<script src="${s}"></script>`).join('\n') : '';
+
 
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -38,7 +41,7 @@ const tpl = template.replace('<!-- BUNDLE -->', headScriptBlock);
 
 const Root = dreija.root();
 
-const routes = dreija.routes();
+const routes = dreija.routes(); // combineRoutes(admin, dreija.routes());
 
 const DB_HOST = dreija.dbhost();
 
@@ -120,16 +123,24 @@ app.get('/db/posts/:id', proxy(DB_HOST, {
     }
 }));
 
-app.get('/admin', expressSession({
-    genid: uuid.v4(),
-    secret: secrets.sessionSecret
-}));
-
 // Static assets directory
 app.use('/public', express.static(path.join('.', 'dist', 'public')));
 
 // Detect when static pages should be sent
 app.use(spiderDetector.middleware());
+
+// Handle admin route with sessions
+app.get('/admin', expressSession({
+    genid: () => uuid.v4(),
+    secret: secrets.sessionSecret,
+    resave: true,
+    saveUninitialized: false
+}));
+
+app.get('/admin', (req, res, next) => {
+    logger.trace(req.session);
+    next();
+});
 
 
 // Single page app = single route handler. Define as middleware so it always
@@ -210,7 +221,7 @@ app.use(function handleIndexRoute(req, res, next) {
                 });
         }
         else {
-            logger.error('404 on', req.url);
+            logger.error('React router gave 404 on', req.url);
             res.status(404).send('not found');
         }
     });
@@ -235,5 +246,5 @@ else {
     module.exports = {
         dreija,
         app
-    }
+    };
 }
