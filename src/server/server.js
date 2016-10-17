@@ -184,6 +184,7 @@ app.use(function handleIndexRoute(req, res, next) {
                     location: history.createLocation(req.url)
                 }
             });
+            console.log(store.getState().routing.location)
 
             Promise.all(
                 renderProps.components.map(cmp => {
