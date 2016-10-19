@@ -2,7 +2,8 @@ var config = require('./common.config');
 var CompressionPlugin = require('compression-webpack-plugin');
 var UglifyJsPlugin = require('webpack/lib/optimize/UglifyJsPlugin');
 
-config.output.filename = '[name]-[hash].js';
+// Use chunkhash so the same file can be produced in different locations.
+config.output.filename = `[name]-[chunkhash].js`;
 config.debug = false;
 config.plugins = config.plugins.concat([
 
