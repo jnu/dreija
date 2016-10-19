@@ -10,3 +10,4 @@ dist/
 tmp/
 server.pid
 .dev/
+.build/

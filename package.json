@@ -1,13 +1,13 @@
 {
   "name": "dreija",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Lightweight isomorphic JS blogging engine",
   "repository": {
     "type": "git",
     "url": "git://github.com/jnu/dreija.git"
   },
   "bin": {
-    "dreija-dev": "./lib/cli/dreija-dev.js"
+    "dreija": "./lib/cli/dreija.js"
   },
   "author": "Joe Nudell",
   "license": "BSD",
