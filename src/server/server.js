@@ -17,6 +17,10 @@ import expressSession from 'express-session';
 import uuid from 'node-uuid';
 import ensureArray from '../shared/lib/util/ensureArray';
 import csurf from 'csurf';
+import RedisStoreFactory from 'connect-redis';
+
+
+const RedisStore = RedisStoreFactory(expressSession);
 
 
 
@@ -47,6 +51,12 @@ const DB_HOST = dreija.dbhost();
 const DB_NAME = dreija.dbname();
 
 const PORT = dreija.port();
+
+const REDIS_HOST = dreija.redishost() || 'localhost';
+
+const REDIS_PORT = dreija.redisport() || '6379';
+
+const REDIS_DB = dreija.redisdb() || 'dreija:session';
 
 const app = express();
 
@@ -98,7 +108,12 @@ app.use(expressSession({
     genid: () => uuid.v4(),
     secret: secrets.sessionSecret,
     resave: true,
-    saveUninitialized: false
+    saveUninitialized: false,
+    store: new RedisStore({
+        host: REDIS_HOST,
+        port: REDIS_PORT,
+        db: REDIS_DB
+    })
 }));
 
 app.use(csurf());
