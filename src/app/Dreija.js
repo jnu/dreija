@@ -6,7 +6,9 @@ export default class Dreija {
             port: null,
             dbhost: null,
             dbname: null,
-            root: null
+            root: null,
+            redishost: null,
+            redisport: null
         }, initialState);
     }
 
@@ -48,6 +50,22 @@ export default class Dreija {
             return this;
         }
         return this.state.dbname;
+    }
+
+    redishost(newRedisHost) {
+        if (newRedisHost) {
+            this.state.redishost = newRedisHost;
+            return this;
+        }
+        return this.state.redishost;
+    }
+
+    redisport(newRedisPort) {
+        if (newRedisPort) {
+            this.state.redisport = newRedisPort;
+            return this;
+        }
+        return this.state.redisport;
     }
 
 }

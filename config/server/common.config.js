@@ -34,6 +34,14 @@ var externals = modules.reduce(function(hash, dep) {
 }, {});
 
 
+// Add custom modules that need to be included as CommonJS / node deps.
+[
+    'hiredis'
+].forEach(function(mod) {
+    externals[mod] = 'commonjs ' + mod;
+});
+
+
 var config = {
 
     context: APP_ROOT,

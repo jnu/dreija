@@ -56,8 +56,6 @@ const REDIS_HOST = dreija.redishost() || 'localhost';
 
 const REDIS_PORT = dreija.redisport() || '6379';
 
-const REDIS_DB = dreija.redisdb() || 'dreija:session';
-
 const app = express();
 
 /**
@@ -111,8 +109,7 @@ app.use(expressSession({
     saveUninitialized: false,
     store: new RedisStore({
         host: REDIS_HOST,
-        port: REDIS_PORT,
-        db: REDIS_DB
+        port: REDIS_PORT
     })
 }));
 
@@ -161,7 +158,6 @@ app.use('/public', express.static(path.join('.', 'dist', 'public')));
 
 // Detect when static pages should be sent
 app.use(spiderDetector.middleware());
-
 
 // Single page app = single route handler. Define as middleware so it always
 // gets called (unless one of the db routes got matched above).
@@ -247,7 +243,6 @@ app.use(function handleIndexRoute(req, res, next) {
         }
     });
 });
-
 
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

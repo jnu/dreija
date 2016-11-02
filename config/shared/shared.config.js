@@ -9,7 +9,7 @@ var config = {
 
     resolve: {
         fallback: path.resolve(__dirname, '..', '..', 'src', 'shared'),
-        extensions: ['', '.js', '.jsx'],
+        extensions: ['', '.js', '.jsx', '.json'],
         alias: {
             assets: path.resolve(__dirname, '..', '..', 'assets')
         }
