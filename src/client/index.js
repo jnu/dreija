@@ -20,6 +20,8 @@ export const load = (encoded = 'e30=') => {
     const store = configureStore(initialState);
 
     match({ routes: dreija.routes(), history: browserHistory }, (error, redirectLocation, renderProps) => {
+        // HACK fix non-deterministic key on init so it matches server.
+        renderProps.location.key = 'INIT';
         render(
             <Root store={ store } {...renderProps} />,
             document.getElementById('root')

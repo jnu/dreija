@@ -4,7 +4,7 @@ import express from 'express';
 import spiderDetector from 'spider-detector';
 import { renderToString, renderToStaticMarkup } from 'react-dom/server';
 import { createElement } from 'react';
-import { match, createMemoryHistory } from 'react-router';
+import { match } from 'react-router';
 import proxy from 'express-http-proxy';
 import { encode } from '../shared/lib/encoding';
 import Immutable from 'immutable';
@@ -163,16 +163,14 @@ app.use(spiderDetector.middleware());
 // gets called (unless one of the db routes got matched above).
 app.use(function handleIndexRoute(req, res, next) {
     const USE_STATIC = req.isSpider();
+    const initUrl = req.url;
 
     res.header('Content-Type', 'text/html; charset=utf-8');
 
-    logger.info("Handling default SPA with request", req.url);
-
-    const history = createMemoryHistory();
-    history.replace(req.url);
+    logger.info("Handling default SPA with request", initUrl);
 
     // Run router to match requests
-    match({ routes, history }, (err, redirectLocation, renderProps) => {
+    match({ routes, location: initUrl }, (err, redirectLocation, renderProps) => {
         if (err) {
             logger.error('Failed to match route', err);
             res.status(500).send(err);
@@ -190,12 +188,8 @@ app.use(function handleIndexRoute(req, res, next) {
             logger.info('Rendering page');
             // Set initial store routing state based on requested path
             const store = configureStore({
-                root: Immutable.Map(),
-                routing: {
-                    location: history.createLocation(req.url)
-                }
+                root: Immutable.Map()
             });
-            console.log(store.getState().routing.location)
 
             Promise.all(
                 renderProps.components.map(cmp => {
@@ -213,10 +207,14 @@ app.use(function handleIndexRoute(req, res, next) {
                         renderToStaticMarkup :
                         renderToString;
 
+                    // HACK fix for non-deterministic location key. Must do the
+                    // same on the client on init so they match on page load
+                    // and React circumvents a re-render.
+                    renderProps.location.key = 'INIT';
                     // Render to a string
                     const embeddableMarkup = renderMethod(createElement(Root, {
                         store,
-                        history
+                        ...renderProps
                     }));
 
                     // Inject markup into page
@@ -234,11 +232,11 @@ app.use(function handleIndexRoute(req, res, next) {
 
                     res.send(page);
                 }, e => {
-                    logger.error('Failed to fetch data for', req.url, 'Error:', e);
+                    logger.error('Failed to fetch data for', initUrl, 'Error:', e);
                 });
         }
         else {
-            logger.error('React router gave 404 on', req.url);
+            logger.error('React router gave 404 on', initUrl);
             res.status(404).send('not found');
         }
     });

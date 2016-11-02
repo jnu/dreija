@@ -4842,10 +4842,6 @@ react-router:
     loose-envify "^1.2.0"
     warning "^3.0.0"
 
-react-router-redux@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/react-router-redux/-/react-router-redux-3.0.0.tgz#1962905f83eae8c75ff32160eed773dd50794230"
-
 read-all-stream@^3.0.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/read-all-stream/-/read-all-stream-3.1.0.tgz#35c3e177f2078ef789ee4bfafa4373074eaef4fa"
