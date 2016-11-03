@@ -11,3 +11,4 @@ tmp/
 server.pid
 .dev/
 .build/
+src/app/demo/secrets.json
