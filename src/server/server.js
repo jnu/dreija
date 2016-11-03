@@ -18,6 +18,8 @@ import uuid from 'node-uuid';
 import ensureArray from '../shared/lib/util/ensureArray';
 import csurf from 'csurf';
 import RedisStoreFactory from 'connect-redis';
+import passport from 'passport';
+import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 
 
 const RedisStore = RedisStoreFactory(expressSession);
@@ -96,6 +98,17 @@ while (argv.length) {
 }
 
 
+/**
+ * Ensure user is logged in
+ */
+function ensureAuth(req, res, next) {
+    if (req.isAuthenticated()) {
+        return next();
+    }
+    res.redirect('/login');
+}
+
+
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Routes
@@ -113,12 +126,33 @@ app.use(expressSession({
     })
 }));
 
+// Auth stuff
+passport.serializeUser((user, done) => done(null, user));
+passport.deserializeUser((obj, done) => done(null, obj));
+passport.use(new GoogleStrategy({
+        clientID: secrets.oauth.google.clientId,
+        clientSecret: secrets.oauth.google.clientSecret,
+        callbackURL: secrets.oauth.google.callbackUrl,
+        passReqToCallback: true
+    },
+    (req, accessToken, refreshToken, profile, done) => {
+        process.nextTick(() => done(null, profile));
+    })
+);
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.use(csurf());
 
 // Authentication
-app.post('/auth', (req, res) => {
-    // TODO authenticate
-});
+app.get('/auth/google', passport.authenticate('google', { scope: [
+    'https://www.googleapis.com/auth/plus.login',
+    'https://www.googleapis.com/auth/plus.profile.emails.read'
+]}));
+app.get('/auth/google/callback',
+    passport.authenticate('google', { failureRedirect: '/' }),
+    (req, res) => res.redirect('/admin')
+);
 
 app.get('/db/posts', proxy(DB_HOST, {
     forwardPath: (req, res) => {
@@ -135,6 +169,10 @@ app.get('/db/posts', proxy(DB_HOST, {
         callback(null, data);
     }
 }));
+
+app.get('/admin', ensureAuth, (req, res) => {
+    res.render('/admin', { user: req.user });
+});
 
 // TODO post route for creating posts
 // TODO put route for updating posts

@@ -49,6 +49,8 @@
     "node-fetch": "git+https://github.com/jnu/node-fetch.git#realerror",
     "node-uuid": "^1.4.7",
     "nodemon": "^1.8.1",
+    "passport": "^0.3.2",
+    "passport-google-oauth": "^1.0.0",
     "react-redux": "^4.2.1",
     "react-router": "^3.0.0",
     "redux": "^3.6.0",
@@ -73,7 +75,7 @@
     "clean": "make clean",
     "lint": "make lint",
     "build": "make build",
-    "start": "make watch",
+    "start": "./lib/cli/dreija.js --watch --secrets ./src/app/demo/secrets.json --app ./src/app/demo/app.js --env DBHOSTNAME=\"http://docker.local:5984\" --env REDISHOST=\"docker.local\"",
     "up": "make up"
   },
   "devDependencies": {

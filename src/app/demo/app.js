@@ -14,8 +14,10 @@ const Greeting = () => (
     </div>
 );
 
-export default dreija => {
-    dreija.routes(
-        <Route path="/" component={ Greeting } />
-    );
+export default (dreija, env) => {
+    dreija
+        .routes(
+            <Route path="/" component={ Greeting } />
+        )
+        .redishost(env.REDISHOST);
 };
