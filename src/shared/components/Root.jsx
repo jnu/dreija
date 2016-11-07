@@ -3,14 +3,13 @@ import { Provider } from 'react-redux';
 import { Router } from 'react-router';
 import dreija from '../../../';
 
-
-export default class root extends Component {
+export default class Root extends Component {
 
     render() {
         return (
             <Provider store={ this.props.store }>
                 <Router {...this.props}>
-                    { dreija.routes() }
+                    { dreija.getRoutesWithStore(this.props.store) }
                 </Router>
             </Provider>
         );

@@ -19,3 +19,5 @@ export default dreija;
 export { actions } from './src/shared/actions';
 
 export { connectToStore } from './src/shared/lib/decorators/redux';
+
+export { withAuth } from './src/shared/lib/auth';

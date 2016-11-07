@@ -17,10 +17,12 @@ import expressSession from 'express-session';
 import uuid from 'node-uuid';
 import ensureArray from '../shared/lib/util/ensureArray';
 import csurf from 'csurf';
-import RedisStoreFactory from 'connect-redis';
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
-
+import redis from 'redis';
+import CouchClient from './couch';
+import RedisStoreFactory from 'connect-redis';
+import User from './user';
 
 const RedisStore = RedisStoreFactory(expressSession);
 
@@ -46,9 +48,9 @@ const tpl = template.replace('<!-- BUNDLE -->', headScriptBlock);
 
 const Root = dreija.root();
 
-const routes = dreija.routes(); // combineRoutes(admin, dreija.routes());
+const DB_HOST = dreija.dbhost() || 'localhost';
 
-const DB_HOST = dreija.dbhost();
+const DB_PORT = dreija.dbport() || '5984';
 
 const DB_NAME = dreija.dbname();
 
@@ -58,7 +60,10 @@ const REDIS_HOST = dreija.redishost() || 'localhost';
 
 const REDIS_PORT = dreija.redisport() || '6379';
 
-const app = express();
+const DB_PATH = `http://${DB_HOST}:${DB_PORT}`;
+
+const DREIJA_DESIGN_DOC = 'dreija_v0';
+
 
 /**
  * Secrets. Hopefully extended / overwritten with keys provided with a CLI flag.
@@ -92,10 +97,35 @@ while (argv.length) {
             break;
         default:
             if (arg[0] === '-') {
-                logger.warn(`Unrecognozed flag ${arg}`);
+                logger.warn(`Unrecognized flag ${arg}`);
             }
     }
 }
+
+
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Instantiate clients and things
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+const app = express();
+
+const redisClient = new redis.RedisClient({
+    host: REDIS_HOST,
+    port: REDIS_PORT
+});
+
+const couchClient = new CouchClient({
+    host: DB_HOST,
+    port: DB_PORT,
+    name: DB_NAME,
+    designDoc: DREIJA_DESIGN_DOC,
+    user: secrets.couchdb.user,
+    password: secrets.couchdb.password,
+    redisClient
+});
+
+const user = new User({ couchClient });
 
 
 /**
@@ -105,9 +135,36 @@ function ensureAuth(req, res, next) {
     if (req.isAuthenticated()) {
         return next();
     }
+    logger.warn('Attempting to access restricted resource from session', req.session)
     res.redirect('/login');
 }
 
+
+/**
+ * Make a JSON error and configure the response. Use in an intercept;
+ * this doesn't actually send the data directly.
+ * @param  {Response} res
+ * @param  {Number} code
+ * @param  {String?} message
+ * @return {APIError}
+ */
+function makeInterceptError(res, code, message = null) {
+    res.status(code);
+    return message;
+}
+
+function getCurrentUser(req) {
+    const user = req ? req.user : null;
+
+    if (!user) {
+        return null;
+    }
+
+    return {
+        id: user._id,
+        roles: user.roles
+    }
+}
 
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -121,22 +178,31 @@ app.use(expressSession({
     resave: true,
     saveUninitialized: false,
     store: new RedisStore({
-        host: REDIS_HOST,
-        port: REDIS_PORT
+        client: redisClient
     })
 }));
 
 // Auth stuff
-passport.serializeUser((user, done) => done(null, user));
-passport.deserializeUser((obj, done) => done(null, obj));
+passport.serializeUser((user, done) => done(null, user.id));
+passport.deserializeUser((id, done) => {
+    user.findById(id)
+        .then(user => done(null, user))
+        .catch(err => {
+            logger.error('Failed to deserialize user!', err);
+            done(null, false);
+        });
+});
 passport.use(new GoogleStrategy({
         clientID: secrets.oauth.google.clientId,
         clientSecret: secrets.oauth.google.clientSecret,
         callbackURL: secrets.oauth.google.callbackUrl,
-        passReqToCallback: true
+        //passReqToCallback: true
     },
     (req, accessToken, refreshToken, profile, done) => {
-        process.nextTick(() => done(null, profile));
+        logger.info(`Successful google auth for ${profile.id}`);
+        // TODO keep more info from google profile
+        user.findOrCreate({ googleId: profile.id })
+            .then(user => done(null, user), done);
     })
 );
 app.use(passport.initialize());
@@ -144,20 +210,24 @@ app.use(passport.session());
 
 app.use(csurf());
 
+
 // Authentication
 app.get('/auth/google', passport.authenticate('google', { scope: [
-    'https://www.googleapis.com/auth/plus.login',
-    'https://www.googleapis.com/auth/plus.profile.emails.read'
+    'profile',
+    'email'
 ]}));
+
 app.get('/auth/google/callback',
-    passport.authenticate('google', { failureRedirect: '/' }),
-    (req, res) => res.redirect('/admin')
+    passport.authenticate('google', {
+        successRedirect: '/admin',
+        failureRedirect: '/login'
+    })
 );
 
-app.get('/db/posts', proxy(DB_HOST, {
+app.get('/db/posts', proxy(DB_PATH, {
     forwardPath: (req, res) => {
         const forwardPath = `/${DB_NAME}/_design/views/_view/index`;
-        logger.info(`Forwarding posts index to ${DB_HOST}${forwardPath}`);
+        logger.info(`Forwarding posts index to ${DB_PATH}${forwardPath}`);
         return forwardPath;
     },
     intercept: (rsp, data, req, res, callback) => {
@@ -170,21 +240,82 @@ app.get('/db/posts', proxy(DB_HOST, {
     }
 }));
 
-app.get('/admin', ensureAuth, (req, res) => {
-    res.render('/admin', { user: req.user });
+// Information for frontend about current user.
+app.get('/auth/info', ensureAuth, (req, res) => {
+    const user = getCurrentUser(req);
+
+    if (!user) {
+        res.status(400).send({});
+        return;
+    }
+
+    res.status(200).send(user);
 });
+
+app.get('/db/admin', ensureAuth, proxy(DB_PATH, {
+    forwardPath: (req, res) => {
+        const forwardPath = `/${DB_NAME}/_design/views/_views/admin`;
+        logger.info(`Forwarding admin index to ${DB_PATH}${forwardPath}`);
+        return forwardPath;
+    },
+    intercept: (rsp, data, req, res, callback) => {
+        res.set('transfer-encoding', '');
+        callback(null, data);
+    }
+}));
+
 
 // TODO post route for creating posts
 // TODO put route for updating posts
 // TODO delete route for deleting posts
 
-app.get('/db/posts/:id', proxy(DB_HOST, {
+app.get('/db/posts/:id', proxy(DB_PATH, {
     forwardPath: (req, res) => {
         const forwardPath = `/${DB_NAME}/${req.params.id}`;
-        logger.info(`Forwarding post request to ${DB_HOST}${forwardPath}`);
+        logger.info(`Forwarding post request to ${DB_PATH}${forwardPath}`);
         return forwardPath;
     },
     intercept: (rsp, data, req, res, callback) => {
+        let json;
+        let dataAsStr;
+
+        // Try to parse entity from couch buffer
+        try {
+            dataAsStr = data.toString();
+            json = (data && dataAsStr) ? JSON.parse(dataAsStr) : null;
+        } catch (e) {
+            logger.error('Error parsing DB data', e, data);
+            json = {
+                error: '__invalid__',
+                data,
+                str: dataAsStr
+            };
+        }
+
+        logger.info('DB entity parse result:', json)
+
+        // Detect errors that occurred during parsing
+        if (!json || json.error) {
+            logger.error('DB access error', json);
+
+            switch (json ? json.error : 'not_found') {
+                case 'not_found':
+                    callback(makeInterceptError(res, 404, 'not_found'));
+                    return;
+                case '__invalid__':
+                    callback(makeInterceptError(res, 500, 'invalid response'));
+                    return;
+                default:
+                    callback(makeInterceptError(res, 500, 'unknown'));
+            }
+        }
+
+        // Make sure resource is fit to be returned, or user is authed.
+        if (json.public !== true && !req.isAuthenticated()) {
+            logger.info(`Insufficient perms to access resource.`);
+            return callback(makeInterceptError(res, 403, 'forbidden'));
+        }
+
         // NOTE see /db/posts intercept comment
         res.set('transfer-encoding', '');
         callback(null, data);
@@ -202,6 +333,13 @@ app.use(spiderDetector.middleware());
 app.use(function handleIndexRoute(req, res, next) {
     const USE_STATIC = req.isSpider();
     const initUrl = req.url;
+    const store = configureStore({
+        root: Immutable.Map(),
+        user: getCurrentUser(req)
+    });
+
+    // TODO treat admin routes separately? Also need to measure perf.
+    const routes = dreija.getRoutesWithStore(store);
 
     res.header('Content-Type', 'text/html; charset=utf-8');
 
@@ -225,9 +363,6 @@ app.use(function handleIndexRoute(req, res, next) {
         if (renderProps) {
             logger.info('Rendering page');
             // Set initial store routing state based on requested path
-            const store = configureStore({
-                root: Immutable.Map()
-            });
 
             Promise.all(
                 renderProps.components.map(cmp => {
@@ -281,22 +416,51 @@ app.use(function handleIndexRoute(req, res, next) {
 });
 
 
+
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Init
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-if (require.main === module) {
-    app.listen(PORT, function handleAppStart(err) {
-        if (err) {
-            logger.error(`Failed to bring up server on ${PORT}. Error: ${err}`);
-            return;
-        }
-        logger.info(`Listening on ${PORT}`);
+/**
+ * Start the server, returning a promise that resolves when it's up.
+ * @param  {Number} options.port
+ * @return {Promise<void>}
+ */
+function startServer({ port }) {
+    return new Promise((resolve, reject) => {
+        app.listen(port || 3030, err => {
+            if (err) {
+                return reject(err);
+            }
+            resolve();
+        });
     });
 }
+
+/**
+ * Start app
+ * @param  {Number} options.port
+ * @return {Promise<void>}
+ */
+function start(opts) {
+    return couchClient
+        .ensureCouchDb()
+        .then(() => startServer(opts));
+}
+
+
+
+// Start up
+if (require.main === module) {
+    start({ port: PORT })
+        .then(() => logger.info(`Listening on ${PORT}!`))
+        .catch(e => logger.error(`Failed to bring up server on ${PORT}. Error: ${e}`));
+}
+// Use as module
 else {
     module.exports = {
         dreija,
-        app
+        app,
+        start
     };
 }

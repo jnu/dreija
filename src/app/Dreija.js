@@ -1,3 +1,6 @@
+import { getWithAuthUtil } from '../shared/lib/util/routeUtil';
+
+
 export default class Dreija {
 
     constructor(initialState = {}) {
@@ -14,10 +17,16 @@ export default class Dreija {
 
     routes(newRoutes) {
         if (newRoutes) {
-            this.state.routes = newRoutes;
+            this.state.routes = typeof newRoutes === 'function' ? newRoutes : () => newRoutes;
             return this;
         }
         return this.state.routes;
+    }
+
+    getRoutesWithStore(store) {
+        return this.state.routes({
+            withAuth: getWithAuthUtil(store)
+        });
     }
 
     root(newRoot) {
@@ -42,6 +51,14 @@ export default class Dreija {
             return this;
         }
         return this.state.dbhost;
+    }
+
+    dbport(newDbPort) {
+        if (newDbPort) {
+            this.state.dbport = newDbPort;
+            return this;
+        }
+        return this.state.dbport;
     }
 
     dbname(newDbName) {

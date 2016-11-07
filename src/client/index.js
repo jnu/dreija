@@ -18,8 +18,9 @@ export const load = (encoded = 'e30=') => {
     const initialRootState = Immutable.fromJS(data.root || {});
     const initialState = Object.assign({}, data, { root: initialRootState });
     const store = configureStore(initialState);
+    const routes = dreija.getRoutesWithStore(store);
 
-    match({ routes: dreija.routes(), history: browserHistory }, (error, redirectLocation, renderProps) => {
+    match({ routes, history: browserHistory }, (error, redirectLocation, renderProps) => {
         // HACK fix non-deterministic key on init so it matches server.
         renderProps.location.key = 'INIT';
         render(
