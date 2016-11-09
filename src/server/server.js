@@ -459,10 +459,10 @@ function pingServices() {
                     const result = redisClient.ping();
                     if (result) {
                         resolve(true);
-                    } else if (Date.now() - start > 10000) {
-                        reject(false);
+                    } else if (Date.now() - start > 1000) {
+                        resolve(false);
                     } else {
-                        setTimeout(wait, 250);
+                        setTimeout(wait, 50);
                     }
                 }());
             })
