@@ -6,13 +6,42 @@ export default class Dreija {
     constructor(initialState = {}) {
         this.state = Object.assign({
             routes: null,
+            views: null,
+            root: null,
             port: null,
             dbhost: null,
+            dbport: null,
             dbname: null,
-            root: null,
             redishost: null,
             redisport: null
         }, initialState);
+
+        this._makeGetterSetters([
+            // routes has special getter/setters
+            'views',
+            'root',
+            'port',
+            'dbhost',
+            'dbport',
+            'dbname',
+            'redishost',
+            'redisport'
+        ]);
+    }
+
+    _makeGetterSetters(props) {
+        const instance = this;
+        const state = instance.state;
+
+        props.forEach(prop => {
+            instance[prop] = val => {
+                if (val !== undefined) {
+                    state[prop] = val;
+                    return instance;
+                }
+                return state[prop];
+            };
+        });
     }
 
     routes(newRoutes) {
@@ -27,62 +56,6 @@ export default class Dreija {
         return this.state.routes({
             withAuth: getWithAuthUtil(store)
         });
-    }
-
-    root(newRoot) {
-        if (newRoot) {
-            this.state.root = newRoot;
-            return this;
-        }
-        return this.state.root;
-    }
-
-    port(newPort) {
-        if (newPort) {
-            this.state.port = newPort;
-            return this;
-        }
-        return this.state.port;
-    }
-
-    dbhost(newDbHost) {
-        if (newDbHost) {
-            this.state.dbhost = newDbHost;
-            return this;
-        }
-        return this.state.dbhost;
-    }
-
-    dbport(newDbPort) {
-        if (newDbPort) {
-            this.state.dbport = newDbPort;
-            return this;
-        }
-        return this.state.dbport;
-    }
-
-    dbname(newDbName) {
-        if (newDbName) {
-            this.state.dbname = newDbName;
-            return this;
-        }
-        return this.state.dbname;
-    }
-
-    redishost(newRedisHost) {
-        if (newRedisHost) {
-            this.state.redishost = newRedisHost;
-            return this;
-        }
-        return this.state.redishost;
-    }
-
-    redisport(newRedisPort) {
-        if (newRedisPort) {
-            this.state.redisport = newRedisPort;
-            return this;
-        }
-        return this.state.redisport;
     }
 
 }

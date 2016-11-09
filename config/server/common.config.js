@@ -36,10 +36,12 @@ var externals = modules.reduce(function(hash, dep) {
 
 // Add custom modules that need to be included as CommonJS / node deps.
 [
-    'hiredis'
+    'hiredis',
+    'uglify-js'
 ].forEach(function(mod) {
     externals[mod] = 'commonjs ' + mod;
 });
+
 
 
 var config = {

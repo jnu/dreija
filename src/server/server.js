@@ -23,6 +23,8 @@ import redis from 'redis';
 import CouchClient from './couch';
 import RedisStoreFactory from 'connect-redis';
 import User from './user';
+import DREIJA_VIEWS from './views';
+
 
 const RedisStore = RedisStoreFactory(expressSession);
 
@@ -58,11 +60,13 @@ const PORT = dreija.port();
 
 const REDIS_HOST = dreija.redishost() || 'localhost';
 
-const REDIS_PORT = dreija.redisport() || '6379';
+const REDIS_PORT = dreija.redisport() || 6379;
 
 const DB_PATH = `http://${DB_HOST}:${DB_PORT}`;
 
 const DREIJA_DESIGN_DOC = 'dreija_v0';
+
+const DREIJA_CUSTOM_DOC = 'app';
 
 
 /**
@@ -195,8 +199,7 @@ passport.deserializeUser((id, done) => {
 passport.use(new GoogleStrategy({
         clientID: secrets.oauth.google.clientId,
         clientSecret: secrets.oauth.google.clientSecret,
-        callbackURL: secrets.oauth.google.callbackUrl,
-        //passReqToCallback: true
+        callbackURL: secrets.oauth.google.callbackUrl
     },
     (req, accessToken, refreshToken, profile, done) => {
         logger.info(`Successful google auth for ${profile.id}`);
@@ -224,22 +227,6 @@ app.get('/auth/google/callback',
     })
 );
 
-app.get('/db/posts', proxy(DB_PATH, {
-    forwardPath: (req, res) => {
-        const forwardPath = `/${DB_NAME}/_design/views/_view/index`;
-        logger.info(`Forwarding posts index to ${DB_PATH}${forwardPath}`);
-        return forwardPath;
-    },
-    intercept: (rsp, data, req, res, callback) => {
-        // NB Content-length and transfer-encoding are incompatible. Couch
-        // might set transfer-encoding, and the proxy middleware blindly sets
-        // the content-length.
-        // TODO fix this in proxy middleware?
-        res.set('transfer-encoding', '');
-        callback(null, data);
-    }
-}));
-
 // Information for frontend about current user.
 app.get('/auth/info', ensureAuth, (req, res) => {
     const user = getCurrentUser(req);
@@ -259,6 +246,23 @@ app.get('/db/admin', ensureAuth, proxy(DB_PATH, {
         return forwardPath;
     },
     intercept: (rsp, data, req, res, callback) => {
+        res.set('transfer-encoding', '');
+        callback(null, data);
+    }
+}));
+
+app.get('/db/view/:view', proxy(DB_PATH, {
+    forwardPath: (req, res) => {
+        const view = req.params.view;
+        const forwardPath = `/${DB_NAME}/_design/${DREIJA_CUSTOM_DOC}/_view/${view}`;
+        logger.info(`VIEW ${view} ${DB_PATH}${forwardPath}`);
+        return forwardPath;
+    },
+    intercept: (rsp, data, req, res, callback) => {
+        // NB Content-length and transfer-encoding are incompatible. Couch
+        // might set transfer-encoding, and the proxy middleware blindly sets
+        // the content-length.
+        // TODO fix this in proxy middleware?
         res.set('transfer-encoding', '');
         callback(null, data);
     }
@@ -438,6 +442,51 @@ function startServer({ port }) {
 }
 
 /**
+ * Ping dependent services to make sure the server can start.
+ * @return {Promise<void>}
+ */
+function pingServices() {
+    const services = [
+        {
+            name: 'couchdb',
+            ping: () => couchClient.ping()
+        },
+        {
+            name: 'redis',
+            ping: () => new Promise((resolve, reject) => {
+                const start = Date.now();
+                (function wait() {
+                    const result = redisClient.ping();
+                    if (result) {
+                        resolve(true);
+                    } else if (Date.now() - start > 10000) {
+                        reject(false);
+                    } else {
+                        setTimeout(wait, 250);
+                    }
+                }());
+            })
+        }
+    ];
+
+    return Promise.all(
+        services.map(s => s.ping())
+    ).then(results => {
+        return results.every((val, i) => {
+            if (!val) {
+                logger.error(`Failed to find ${services[i].name}`);
+            }
+            return val;
+        });
+    })
+    .then(ready => {
+        if (!ready) {
+            throw new Error('services not available');
+        }
+    });
+}
+
+/**
  * Start app
  * @param  {Number} options.port
  * @return {Promise<void>}
@@ -445,6 +494,8 @@ function startServer({ port }) {
 function start(opts) {
     return couchClient
         .ensureCouchDb()
+        .then(() => couchClient.ensureViews(DREIJA_DESIGN_DOC, DREIJA_VIEWS))
+        .then(() => couchClient.ensureViews(DREIJA_CUSTOM_DOC, dreija.views()))
         .then(() => startServer(opts));
 }
 
@@ -452,9 +503,11 @@ function start(opts) {
 
 // Start up
 if (require.main === module) {
-    start({ port: PORT })
+    Promise.resolve()
+        .then(() => pingServices())
+        .then(() => start({ port: PORT }))
         .then(() => logger.info(`Listening on ${PORT}!`))
-        .catch(e => logger.error(`Failed to bring up server on ${PORT}. Error: ${e}`));
+        .catch(e => logger.error(`Failed to bring up server on ${PORT}`, e));
 }
 // Use as module
 else {

@@ -1,6 +1,6 @@
 import logger from '../../lib/logger';
+import UglifyJS from 'uglify-js';
 import nano from 'nano';
-import DREIJA_VIEWS from './views';
 
 
 /**
@@ -14,6 +14,23 @@ const DB_AUTH_KEY = 'auth:couchdb:session';
  * @constant {Number}
  */
 const COUCH_EXPIRE_S = 1 * 60 * 9.5;
+
+/**
+ * Get a deterministic string representation of a function in an acceptable
+ * format for CouchDB's design doc views.
+ * @param  {Function} fn
+ * @return {String}
+ */
+function compileFunction(fn) {
+    const str = fn.toString();
+
+    // Wrap function as IIFE so Uglify can still compile anonymous functions.
+    const wrapped = `!${str}();`;
+    const compiled = UglifyJS.minify(wrapped, { fromString: true  }).code;
+
+    // Remove the `!...();` IIFE wrapper
+    return compiled.substr(1, compiled.length - 4);
+}
 
 
 /**
@@ -47,15 +64,13 @@ export default class CouchClient {
         port,
         user,
         password,
-        name,
-        designDoc
+        name
     }) {
         this.redisClient = redisClient;
         this.conn = nano(`http://${host}:${port}`);
         this.user = user;
         this.pass = password;
         this.name = name;
-        this.designDoc = designDoc || 'views';
     }
 
     /**
@@ -184,12 +199,51 @@ export default class CouchClient {
 
     /**
      * Instrument views for a database.
-     * @param  {Nano} db - Nano client context
+     * @param  {String} designDoc - Name of design doc
+     * @param  {Views} views - view definitions for this design doc
      * @return {Promise<void>}
      */
-    createViews(db) {
-        const { conn, designDoc } = this;
-        return promisify((db || conn).insert, [DREIJA_VIEWS, `_design/${designDoc}`], conn);
+    createViews(designDoc, views) {
+        const { conn } = this;
+        return promisify(conn.insert, [views, `_design/${designDoc}`], conn);
+    }
+
+    /**
+     * Compile an object containing views. Functions in this view will be
+     * compiled into formats that are acceptable.
+     * @param  {{ [key: string]: CouchView}} views
+     * @return {{ [key: string]: CouchView }}
+     */
+    compileViews(views) {
+        const compiled = {};
+        Object.keys(views).forEach(viewKey => {
+            const viewSpec = views[viewKey];
+            const compiledSpec = compiled[viewKey] = {};
+            Object.keys(viewSpec).forEach(specKey => {
+                const specVal = viewSpec[specKey];
+                compiledSpec[specKey] = (typeof specVal === 'function') ?
+                    compileFunction(specVal) :
+                    specVal;
+            });
+        });
+        return compiled;
+    }
+
+    /**
+     * Write views to given design doc. If the design doc exists, this will
+     * replace existing views; otherwise, a new design doc will be created.
+     * @param  {String} designDoc - name of design doc
+     * @param  {{ [key: string]: CouchView }} views - Hash of couch views
+     * @return {Promise<Document>}
+     */
+    ensureViews(designDoc, views = {}) {
+        const docId = `_design/${designDoc}`;
+        const compiledViews = this.compileViews(views);
+
+        return this.get(docId)
+            .then(doc => ({ ...doc, views: compiledViews }))
+            .catch(() => ({ views: compiledViews }))
+            .then(doc => this.put(doc));
     }
 
     /**
@@ -208,9 +262,10 @@ export default class CouchClient {
     createDb() {
         const { name, conn } = this;
         return promisify(conn.db.create, [name], conn.db)
-            .then(() => conn.use(name))
-            .then(db => this.createViews(db, name))
-            .then(() => conn.use(name));
+            .then(() => {
+                this.conn = conn.use(name);
+                return this.conn;
+            });
     }
 
     /**
@@ -218,12 +273,12 @@ export default class CouchClient {
      * @return {Promise<CouchDB>} database descriptor
      */
     ensureCouchDb() {
-        logger.info(`Checking database ${this.name} (might take a minute) ...`)
+        logger.info(`Checking database ${this.name} (might take a minute) ...`);
         return this.getCouchSession()
             .then(() => this.getDb())
             .catch(e => {
                 if (e.statusCode === 404) {
-                    logger.warn(`DB ${this.name} does not exist. Instrumenting ...`)
+                    logger.warn(`DB ${this.name} does not exist. Instrumenting ...`);
                     return this.createDb();
                 }
 
@@ -257,12 +312,13 @@ export default class CouchClient {
 
     /**
      * Get all Documents, optionally matching criteria, from view.
+     * @param  {String} designDoc
      * @param  {String} view
      * @param  {String[]?} keys - optional keys to filter / sort by
      * @return {Promise<Document[]>}
      */
-    getAllFromView(view, keys = null) {
-        const { conn, designDoc } = this;
+    getAllFromView(designDoc, view, keys = null) {
+        const { conn } = this;
         const params = keys ? { keys } : {};
         return promisify(conn.view, [designDoc, view, params], conn)
             .then(results => results ? (results.rows || []) : [])
@@ -295,6 +351,20 @@ export default class CouchClient {
         const { conn } = this;
         return this.getCouchSession()
             .then(() => promisify(conn.insert, [doc], conn));
+    }
+
+    /**
+     * Ping CouchDB, returning true or false depending on result.
+     * @return {Promise<boolean>}
+     */
+    ping() {
+        const { conn } = this;
+        return promisify(conn.dinosaur, [], conn)
+            .then(resp => resp.couchdb === 'Welcome')
+            .catch(e => {
+                logger.error(`Error pinging CouchDB`, e);
+                return false;
+            });
     }
 
 

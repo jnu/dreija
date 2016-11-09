@@ -3,8 +3,9 @@
  * Use this as an opportunity to render documentation.
  */
 import { Route, IndexRoute } from 'react-router';
-import React from 'react';
+import React, { Component } from 'react';
 import { Link } from 'react-router';
+import { connectToStore } from '../../../';
 
 
 const App = ({ children }) => (
@@ -26,8 +27,26 @@ const Greeting = () => (
 const Restricted = () => (
     <div>
         <p>You are viewing a restricted page</p>
+        <RestrictedData></RestrictedData>
     </div>
 );
+
+@connectToStore
+class RestrictedData extends Component {
+    static fetchData(dispatch) {
+        dispatch(ensureResource('users'));
+    }
+
+    static deriveProps(state, props) {
+        const users = state.root.get('users');
+        return { users };
+    }
+
+    render() {
+        const users = this.props.users || {};
+        return <ul>{ users.map(u => <li key={ u.id }>u.id</li>) }</ul>
+    }
+}
 
 const Login = () => (
     <div>
@@ -45,6 +64,24 @@ export default (dreija, env) => {
                 <Route path="/login" component={ Login } />
             </Route>
         )
+        .views({
+            users: {
+                map: doc => {
+                    if (doc.type === 'user') {
+                        const { _id } = doc;
+                        const val = {
+                            id: _id,
+                            rev: doc._rev,
+                            name: doc.name,
+                            type: doc.type,
+                            roles: doc.roles
+                        };
+
+                        emit(_id, val);
+                    }
+                }
+            }
+        })
         .dbname('testcreate')
         .dbhost(env.DBHOST)
         .redishost(env.REDISHOST);
