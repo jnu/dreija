@@ -24,3 +24,13 @@ export const RECEIVE_TIMESTAMP_KEY = '@@receive_timestamp';
 export const RECEIVE_INDEX_TIMESTAMP_KEY = '@@receive_index_timestamp';
 export const IS_FETCHING_KEY = '@@is_fetching';
 export const IS_FETCHING_INDEX_KEY = '@@is_fetching_index';
+
+
+
+export const RESOURCE_STORE_KEY = '@@resources';
+export const RESOURCE_LOADED_KEY = '@@is_loaded';
+export const RESOURCE_LOADING_KEY = '@@is_loading';
+export const REQUEST_RESOURCE_LIST = 'request_resource_list';
+export const REQUEST_RESOURCE = 'request_resource';
+export const RECEIVE_RESOURCE = 'receive_resource';
+export const RECEIVE_RESOURCE_LIST = 'receive_resource_list';

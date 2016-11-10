@@ -129,7 +129,10 @@ const couchClient = new CouchClient({
     redisClient
 });
 
-const user = new User({ couchClient });
+const userModel = new User({
+    couchClient,
+    design: DREIJA_DESIGN_DOC
+});
 
 
 /**
@@ -139,8 +142,21 @@ function ensureAuth(req, res, next) {
     if (req.isAuthenticated()) {
         return next();
     }
-    logger.warn('Attempting to access restricted resource from session', req.session)
+    logger.warn('Attempting to access restricted resource from session', req.session);
     res.redirect('/login');
+}
+
+/**
+ * Prevent caching of this resource
+ * @param  {Request} req
+ * @param  {Response} res
+ * @param  {Function} next
+ */
+function noCache(req, res, next) {
+    res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+    res.header('Expires', '-1');
+    res.header('Pragma', 'no-cache');
+    next();
 }
 
 
@@ -157,17 +173,25 @@ function makeInterceptError(res, code, message = null) {
     return message;
 }
 
-function getCurrentUser(req) {
+function getCurrentUser(req, opts = { private: false }) {
     const user = req ? req.user : null;
 
     if (!user) {
         return null;
     }
 
-    return {
+    const info = {
         id: user._id,
         roles: user.roles
+    };
+
+    // Add private info to hash if requested
+    if (opts.private) {
+        info.cookie = req.headers ? req.headers['cookie'] : null;
+        info.csrfToken = req.csrfToken();
     }
+
+    return info;
 }
 
 
@@ -189,7 +213,7 @@ app.use(expressSession({
 // Auth stuff
 passport.serializeUser((user, done) => done(null, user.id));
 passport.deserializeUser((id, done) => {
-    user.findById(id)
+    userModel.findById(id)
         .then(user => done(null, user))
         .catch(err => {
             logger.error('Failed to deserialize user!', err);
@@ -204,7 +228,7 @@ passport.use(new GoogleStrategy({
     (req, accessToken, refreshToken, profile, done) => {
         logger.info(`Successful google auth for ${profile.id}`);
         // TODO keep more info from google profile
-        user.findOrCreate({ googleId: profile.id })
+        userModel.findOrCreate({ googleId: profile.id })
             .then(user => done(null, user), done);
     })
 );
@@ -228,7 +252,7 @@ app.get('/auth/google/callback',
 );
 
 // Information for frontend about current user.
-app.get('/auth/info', ensureAuth, (req, res) => {
+app.get('/auth/info', noCache, ensureAuth, (req, res) => {
     const user = getCurrentUser(req);
 
     if (!user) {
@@ -236,7 +260,7 @@ app.get('/auth/info', ensureAuth, (req, res) => {
         return;
     }
 
-    res.status(200).send(user);
+    res.send(user);
 });
 
 app.get('/db/admin', ensureAuth, proxy(DB_PATH, {
@@ -251,22 +275,67 @@ app.get('/db/admin', ensureAuth, proxy(DB_PATH, {
     }
 }));
 
-app.get('/db/view/:view', proxy(DB_PATH, {
-    forwardPath: (req, res) => {
-        const view = req.params.view;
-        const forwardPath = `/${DB_NAME}/_design/${DREIJA_CUSTOM_DOC}/_view/${view}`;
-        logger.info(`VIEW ${view} ${DB_PATH}${forwardPath}`);
-        return forwardPath;
-    },
-    intercept: (rsp, data, req, res, callback) => {
-        // NB Content-length and transfer-encoding are incompatible. Couch
-        // might set transfer-encoding, and the proxy middleware blindly sets
-        // the content-length.
-        // TODO fix this in proxy middleware?
-        res.set('transfer-encoding', '');
-        callback(null, data);
+
+
+/**
+ * Deal with errors that come back from querying Couch views.
+ * @param  {Response} res
+ * @param  {Error} e
+ */
+function handleViewError(res, e) {
+    logger.warn('VIEW QUERY FAILED', e);
+    switch (e && e.message) {
+        case 'unauthorized':
+            return res.sendStatus(401);
+        case 'forbidden':
+            return res.sendStatus(403);
+        default:
+            res.sendStatus(500);
     }
-}));
+}
+
+/**
+ * Get hash of relevant auth info from request
+ * @param  {Request} req
+ * @return {AuthSummary}
+ */
+function getRequestAuth(req) {
+    return {
+        authed: req.isAuthenticated(),
+        roles: req.user && req.user.roles
+    };
+}
+
+/**
+ * View: list all in given index
+ */
+app.get('/db/view/:view', (req, res) => {
+    const view = req.params.view;
+    logger.info(`VIEW ${DREIJA_CUSTOM_DOC} ${view}`);
+    couchClient.getAllFromView(DREIJA_CUSTOM_DOC, view, null, getRequestAuth(req))
+        .then(results => res.send({ resource: results }))
+        .catch(e => handleViewError(res, e));
+});
+
+/**
+ * View: list one from given index matching ID
+ */
+app.get('/db/view/:view/:id', (req, res) => {
+    const { view, id } = req.params;
+    logger.info(`VIEW KEY ${DREIJA_CUSTOM_DOC} ${view} ${id}`);
+    couchClient.getOneFromView(DREIJA_CUSTOM_DOC, view, [id], getRequestAuth(req))
+        .then(result => res.send({ resource: result }))
+        .catch(e => handleViewError(res, e));
+});
+
+/**
+ * Resource: get a resource by ID directly
+ */
+app.get('/db/resource/:id', (req, res) => {
+    const { id } = req.params;
+    logger.info(`GET ID ${id}`);
+    couchClient.get(id).then(result => res.send({ resource: result }));
+});
 
 
 // TODO post route for creating posts
@@ -296,7 +365,7 @@ app.get('/db/posts/:id', proxy(DB_PATH, {
             };
         }
 
-        logger.info('DB entity parse result:', json)
+        logger.info('DB entity parse result:', json);
 
         // Detect errors that occurred during parsing
         if (!json || json.error) {
@@ -339,7 +408,7 @@ app.use(function handleIndexRoute(req, res, next) {
     const initUrl = req.url;
     const store = configureStore({
         root: Immutable.Map(),
-        user: getCurrentUser(req)
+        user: getCurrentUser(req, { private: true })
     });
 
     // TODO treat admin routes separately? Also need to measure perf.
@@ -370,6 +439,11 @@ app.use(function handleIndexRoute(req, res, next) {
 
             Promise.all(
                 renderProps.components.map(cmp => {
+                    logger.info(
+                        'PREFETCH',
+                        cmp.name || cmp.displayName,
+                        cmp.fetchData ? 'No data requested.' : 'fetching!'
+                    );
                     return cmp.fetchData && cmp.fetchData(
                         store.dispatch,
                         renderProps.params
@@ -410,6 +484,10 @@ app.use(function handleIndexRoute(req, res, next) {
                     res.send(page);
                 }, e => {
                     logger.error('Failed to fetch data for', initUrl, 'Error:', e);
+                })
+                .catch(e => {
+                    logger.error('RENDER FAIL', initUrl, e);
+                    res.status(500).send(e);
                 });
         }
         else {
@@ -454,12 +532,12 @@ function pingServices() {
         {
             name: 'redis',
             ping: () => new Promise((resolve, reject) => {
-                const start = Date.now();
+                const startTs = Date.now();
                 (function wait() {
                     const result = redisClient.ping();
                     if (result) {
                         resolve(true);
-                    } else if (Date.now() - start > 1000) {
+                    } else if (Date.now() - startTs > 1000) {
                         resolve(false);
                     } else {
                         setTimeout(wait, 50);

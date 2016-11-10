@@ -1,13 +1,20 @@
 import { createStore, applyMiddleware, combineReducers } from 'redux';
 import thunkMiddleware from 'redux-thunk';
 import createLogger from 'redux-logger';
-import { rootReducer, userReducer } from './reducers';
+import { rootReducer,
+    userReducer,
+    resourceReducer
+} from './reducers';
 import { BROWSER } from './env';
 
 
 const loggerMiddleware = createLogger();
 
-const reducer = combineReducers({ root: rootReducer, user: userReducer });
+const reducer = combineReducers({
+    root: rootReducer,
+    user: userReducer,
+    resource: resourceReducer
+});
 
 const middleware = [
     thunkMiddleware,

@@ -12,8 +12,9 @@ import logger from '../../lib/logger';
 
 export default class User {
 
-    constructor({ couchClient }) {
+    constructor({ couchClient, design }) {
         this.couchClient = couchClient;
+        this.design = design;
     }
 
     /**
@@ -59,7 +60,7 @@ export default class User {
     findOrCreate(params) {
         const filterKeys = this.buildKeysFromParams(params);
         return this.couchClient
-            .getOneFromView('users', filterKeys)
+            .getOneFromView(this.design, 'users', filterKeys)
             .then(user => {
                 if (user) {
                     logger.info(`Found user: ${user.id}`);

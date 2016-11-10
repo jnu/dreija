@@ -15,8 +15,12 @@ import dreija from '../../';
 // NB: e30= is encoded '{}'.
 export const load = (encoded = 'e30=') => {
     const data = decode(encoded);
-    const initialRootState = Immutable.fromJS(data.root || {});
-    const initialState = Object.assign({}, data, { root: initialRootState });
+    // Hydrate selected keys as immutable objects.
+    const initialStoreState = ['root', 'resource'].reduce((hash, key) => {
+        hash[key] = Immutable.fromJS(data[key] || {});
+        return hash;
+    }, {});
+    const initialState = Object.assign({}, data, initialStoreState);
     const store = configureStore(initialState);
     const routes = dreija.getRoutesWithStore(store);
 

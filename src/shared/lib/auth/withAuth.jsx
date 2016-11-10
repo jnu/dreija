@@ -1,5 +1,5 @@
 import { auth } from './';
-import { difference } from 'lodash';
+import { intersection } from 'lodash';
 import { BROWSER } from '../../env';
 
 
@@ -26,7 +26,7 @@ function getUserRoles(store) {
 
 
 /**
- * Create a function t verify that user has all of the given roles before proceeding.
+ * Create a function to verify that user has all of the given roles before proceeding.
  * @param  {...string} roles
  * @return {(...string[]) => EnterHook} react-router enter hook factory
  */
@@ -35,7 +35,7 @@ export function getWithAuthUtil(store) {
         return (nextState, replace, callback) => {
             getUserRoles(store)
                 .then(userRoles => {
-                    if (!userRoles || difference(roles, userRoles).length !== 0) {
+                    if (!userRoles || intersection(roles, userRoles).length !== roles.length) {
                         throw new Error('Unauthorized');
                     }
                 })

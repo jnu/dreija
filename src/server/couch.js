@@ -1,6 +1,7 @@
 import logger from '../../lib/logger';
 import UglifyJS from 'uglify-js';
 import nano from 'nano';
+import { intersection } from 'lodash';
 
 
 /**
@@ -14,6 +15,15 @@ const DB_AUTH_KEY = 'auth:couchdb:session';
  * @constant {Number}
  */
 const COUCH_EXPIRE_S = 1 * 60 * 9.5;
+
+/**
+ * Default authentication settings for view
+ * @constant {Auth}
+ */
+const DEFAULT_AUTH_PARAMS = {
+    public: true,
+    roles: []
+};
 
 /**
  * Get a deterministic string representation of a function in an acceptable
@@ -30,6 +40,17 @@ function compileFunction(fn) {
 
     // Remove the `!...();` IIFE wrapper
     return compiled.substr(1, compiled.length - 4);
+}
+
+
+/**
+ * Stringify two objects and return their equality.
+ * @param  {Object} a
+ * @param  {Object} b
+ * @return {Boolean}
+ */
+function compareStringified(a, b) {
+    return JSON.stringify(a) === JSON.stringify(b);
 }
 
 
@@ -68,6 +89,7 @@ export default class CouchClient {
     }) {
         this.redisClient = redisClient;
         this.conn = nano(`http://${host}:${port}`);
+        this.db = null;
         this.user = user;
         this.pass = password;
         this.name = name;
@@ -183,7 +205,6 @@ export default class CouchClient {
      * @return {Promise<void>}
      */
     getCouchSession() {
-        const { conn, name } = this;
         return this.getExistingSession()
             .then(cookie => this.validateExistingSession(cookie))
             .catch(err => {
@@ -193,7 +214,7 @@ export default class CouchClient {
             })
             .then(cookie => {
                 logger.info('Authenticated.');
-                conn.config.cookie = cookie;
+                return cookie;
             });
     }
 
@@ -204,8 +225,8 @@ export default class CouchClient {
      * @return {Promise<void>}
      */
     createViews(designDoc, views) {
-        const { conn } = this;
-        return promisify(conn.insert, [views, `_design/${designDoc}`], conn);
+        const { db } = this;
+        return promisify(db.insert, [views, `_design/${designDoc}`], db);
     }
 
     /**
@@ -219,8 +240,12 @@ export default class CouchClient {
         Object.keys(views).forEach(viewKey => {
             const viewSpec = views[viewKey];
             const compiledSpec = compiled[viewKey] = {};
-            Object.keys(viewSpec).forEach(specKey => {
+            ['map', 'reduce'].forEach(specKey => {
                 const specVal = viewSpec[specKey];
+                // Not all functions are guaranteed to be defined.
+                if (!specVal) {
+                    return;
+                }
                 compiledSpec[specKey] = (typeof specVal === 'function') ?
                     compileFunction(specVal) :
                     specVal;
@@ -230,20 +255,60 @@ export default class CouchClient {
     }
 
     /**
+     * Get the authentication settings for each view and consolidate as its
+     * own doc.
+     * @param  {{ [key: string]: CouchView }} views
+     * @return {{ [key: string]: Auth }}
+     */
+    getAuthModelForViews(views) {
+        const authModel = {};
+
+        Object.keys(views).forEach(viewKey => {
+            const viewSpec = views[viewKey];
+            const auth = viewSpec.auth || DEFAULT_AUTH_PARAMS;
+            authModel[viewKey] = auth;
+        });
+
+        return authModel;
+    }
+
+    /**
      * Write views to given design doc. If the design doc exists, this will
      * replace existing views; otherwise, a new design doc will be created.
      * @param  {String} designDoc - name of design doc
      * @param  {{ [key: string]: CouchView }} views - Hash of couch views
-     * @return {Promise<Document>}
+     * @return {Promise<void>}
      */
     ensureViews(designDoc, views = {}) {
         const docId = `_design/${designDoc}`;
         const compiledViews = this.compileViews(views);
+        const dreijaAuth = this.getAuthModelForViews(views);
 
         return this.get(docId)
-            .then(doc => ({ ...doc, views: compiledViews }))
-            .catch(() => ({ views: compiledViews }))
-            .then(doc => this.put(doc));
+            .then(doc => {
+                // Avoid updating things if views haven't changed.
+                const updates = {
+                    ...doc
+                };
+
+                let needsUpdate = false;
+
+                if (!compareStringified(doc.auth, dreijaAuth)) {
+                    logger.warn(`Auth model in ${designDoc} has changed, updated it ...`);
+                    updates.auth = dreijaAuth;
+                    needsUpdate = true;
+                }
+
+                if (!compareStringified(doc.views, compiledViews)) {
+                    logger.warn(`Views in ${designDoc} have changed, updating them ...`);
+                    updates.views = compiledViews;
+                    needsUpdate = true;
+                }
+
+                return needsUpdate ? updates : null;
+            })
+            .catch(() => ({ auth: dreijaAuth, views: compiledViews }))
+            .then(doc => doc ? this.put(doc, docId) : null);
     }
 
     /**
@@ -262,10 +327,7 @@ export default class CouchClient {
     createDb() {
         const { name, conn } = this;
         return promisify(conn.db.create, [name], conn.db)
-            .then(() => {
-                this.conn = conn.use(name);
-                return this.conn;
-            });
+            .then(() => conn);
     }
 
     /**
@@ -290,7 +352,7 @@ export default class CouchClient {
             .then(() => this.getDb())
             .then(db => {
                 logger.info(`Using DB: ${db.db_name}`, db);
-                this.conn = this.conn.use(db.db_name);
+                this.db = this.conn.use(db.db_name);
                 return db;
             });
     }
@@ -306,22 +368,41 @@ export default class CouchClient {
      * @return {Promise<Document?>}
      */
     get(id, params = {}) {
-        const { conn } = this;
-        return promisify(conn.get, [id, params], conn);
+        const { db } = this;
+        return promisify(db.get, [id, params], db);
     }
 
     /**
      * Get all Documents, optionally matching criteria, from view.
-     * @param  {String} designDoc
+     * @param  {String} design
      * @param  {String} view
      * @param  {String[]?} keys - optional keys to filter / sort by
      * @return {Promise<Document[]>}
      */
-    getAllFromView(designDoc, view, keys = null) {
-        const { conn } = this;
+    getAllFromView(design, view, keys = null, auth = {}) {
+        const { db } = this;
         const params = keys ? { keys } : {};
-        return promisify(conn.view, [designDoc, view, params], conn)
-            .then(results => results ? (results.rows || []) : [])
+        return Promise.all([
+                promisify(db.view, [design, view, params], db),
+                this.getViewAuthModel(design, view)
+            ])
+            .then(([results, authModel]) => {
+                // Check permissions
+                if (!authModel.public) {
+                    // Check if authed at all
+                    if (!auth.authed) {
+                        throw new Error('unauthorized');
+                    }
+                    // Check if has right permissions
+                    const needsRoles = authModel.roles || [];
+                    const hasRoles = auth.roles || [];
+                    if (!intersection(needsRoles, hasRoles).length === needsRoles.length) {
+                        throw new Error('forbidden');
+                    }
+                }
+                // Normalize results
+                return results ? (results.rows || []) : [];
+            })
             .then(results => results.map(result => ({
                 id: result.id,
                 ...result.value
@@ -331,12 +412,36 @@ export default class CouchClient {
     /**
      * Get a single Document from the given view, searching by the given keys.
      * Only returns first Document if there are multiple matches.
+     * @param  {String} design
      * @param  {String} view
      * @param  {String[]?} keys - optional keys to filter / sort by
      * @return {Promise<Document?>}
      */
-    getOneFromView(view, keys) {
-        return this.getAllFromView(view, keys).then(results => results[0]);
+    getOneFromView(design, view, keys, auth = {}) {
+        return this.getAllFromView(design, view, keys, auth)
+            .then(results => results[0]);
+    }
+
+    /**
+     * Get auth params associated with view
+     * @param  {String} design - name of design doc
+     * @param  {String} view - name of view
+     * @return {Promise<AuthParams>}
+     */
+    getViewAuthModel(design, view) {
+        return this.get(`_design/${design}`)
+            .then(doc => {
+                if (doc.auth) {
+                    const auth = doc.auth[view];
+                    if (auth) {
+                        return auth;
+                    }
+                    logger.warn(`Auth model missing for ${design}:${view}`);
+                } else {
+                    logger.warn(`Auth model missing for ${design}`)
+                }
+                return DEFAULT_AUTH_PARAMS;
+            });
     }
 
     /**
@@ -347,10 +452,14 @@ export default class CouchClient {
      * @param  {Document} doc - include _id and _rev fields for update
      * @return {Promise<Document>}
      */
-    put(doc) {
-        const { conn } = this;
+    put(doc, name) {
+        const { db } = this;
+        const params = name ? [doc, name] : [doc];
         return this.getCouchSession()
-            .then(() => promisify(conn.insert, [doc], conn));
+            .then(cookie => {
+                db.config.cookie = cookie;
+                return promisify(db.insert, params, db);
+            });
     }
 
     /**

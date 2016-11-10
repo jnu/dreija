@@ -5,7 +5,9 @@
 import { Route, IndexRoute } from 'react-router';
 import React, { Component } from 'react';
 import { Link } from 'react-router';
-import { connectToStore } from '../../../';
+import { withData } from '../../../';
+import { ensureResourceList } from '../../../actions';
+import { RESOURCE_STORE_KEY } from '../../../';
 
 
 const App = ({ children }) => (
@@ -15,36 +17,46 @@ const App = ({ children }) => (
     </div>
 );
 
-const Greeting = () => (
-    <div>
-        <p>It works!</p>
-        <p>Supply your own routes to make something awesome.</p>
-        <p>You can access <Link to="/admin">Restricted Content</Link> through OAuth.</p>
-        <p>TODO: documentation</p>
-    </div>
-);
-
-const Restricted = () => (
-    <div>
-        <p>You are viewing a restricted page</p>
-        <RestrictedData></RestrictedData>
-    </div>
-);
-
-@connectToStore
-class RestrictedData extends Component {
-    static fetchData(dispatch) {
-        dispatch(ensureResource('users'));
-    }
-
-    static deriveProps(state, props) {
-        const users = state.root.get('users');
-        return { users };
-    }
+class Greeting extends Component {
 
     render() {
-        const users = this.props.users || {};
-        return <ul>{ users.map(u => <li key={ u.id }>u.id</li>) }</ul>
+        return (
+            <div>
+                <p>It works!</p>
+                <p>Supply your own routes to make something awesome.</p>
+                <p>You can access <Link to="/admin">Restricted Content</Link> through OAuth.</p>
+                <p>TODO: documentation</p>
+            </div>
+        );
+    }
+}
+
+
+
+@withData({
+    fetch: dispatch => dispatch(ensureResourceList('users'))
+})
+class Restricted extends Component  {
+    render() {
+        return (
+            <div>
+                <p>You are viewing a restricted page</p>
+                <RestrictedData></RestrictedData>
+            </div>
+        );
+    }
+};
+
+@withData({
+    derive: (state, props) => {
+        const users = state.resource.getIn(['users', RESOURCE_STORE_KEY]);
+        return { users };
+    }
+})
+class RestrictedData extends Component {
+    render() {
+        const users = this.props.users;
+        return <pre>{ users ? JSON.stringify(users.toJS(), null, 2) : 'nothing' }</pre>;
     }
 }
 
@@ -79,6 +91,10 @@ export default (dreija, env) => {
 
                         emit(_id, val);
                     }
+                },
+                auth: {
+                    roles: [],
+                    public: false
                 }
             }
         })
