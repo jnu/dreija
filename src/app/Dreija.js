@@ -7,6 +7,7 @@ export default class Dreija {
         this.state = Object.assign({
             routes: null,
             views: null,
+            auth: null,
             root: null,
             port: null,
             dbhost: null,
@@ -19,6 +20,7 @@ export default class Dreija {
         this._makeGetterSetters([
             // routes has special getter/setters
             'views',
+            'auth',
             'root',
             'port',
             'dbhost',

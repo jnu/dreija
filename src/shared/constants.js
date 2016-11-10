@@ -34,3 +34,6 @@ export const REQUEST_RESOURCE_LIST = 'request_resource_list';
 export const REQUEST_RESOURCE = 'request_resource';
 export const RECEIVE_RESOURCE = 'receive_resource';
 export const RECEIVE_RESOURCE_LIST = 'receive_resource_list';
+
+export const REQUEST_SEND_RESOURCE = 'request_send_resource';
+export const RECEIVE_SEND_RESOURCE = 'receive_send_resource';

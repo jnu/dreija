@@ -20,10 +20,7 @@ const COUCH_EXPIRE_S = 1 * 60 * 9.5;
  * Default authentication settings for view
  * @constant {Auth}
  */
-const DEFAULT_AUTH_PARAMS = {
-    public: true,
-    roles: []
-};
+const DEFAULT_VIEW_AUTH = true;
 
 /**
  * Get a deterministic string representation of a function in an acceptable
@@ -255,34 +252,15 @@ export default class CouchClient {
     }
 
     /**
-     * Get the authentication settings for each view and consolidate as its
-     * own doc.
-     * @param  {{ [key: string]: CouchView }} views
-     * @return {{ [key: string]: Auth }}
-     */
-    getAuthModelForViews(views) {
-        const authModel = {};
-
-        Object.keys(views).forEach(viewKey => {
-            const viewSpec = views[viewKey];
-            const auth = viewSpec.auth || DEFAULT_AUTH_PARAMS;
-            authModel[viewKey] = auth;
-        });
-
-        return authModel;
-    }
-
-    /**
      * Write views to given design doc. If the design doc exists, this will
      * replace existing views; otherwise, a new design doc will be created.
      * @param  {String} designDoc - name of design doc
      * @param  {{ [key: string]: CouchView }} views - Hash of couch views
      * @return {Promise<void>}
      */
-    ensureViews(designDoc, views = {}) {
+    ensureViews(designDoc, views = {}, auth = {}) {
         const docId = `_design/${designDoc}`;
         const compiledViews = this.compileViews(views);
-        const dreijaAuth = this.getAuthModelForViews(views);
 
         return this.get(docId)
             .then(doc => {
@@ -293,9 +271,9 @@ export default class CouchClient {
 
                 let needsUpdate = false;
 
-                if (!compareStringified(doc.auth, dreijaAuth)) {
+                if (!compareStringified(doc.auth, auth)) {
                     logger.warn(`Auth model in ${designDoc} has changed, updated it ...`);
-                    updates.auth = dreijaAuth;
+                    updates.auth = auth;
                     needsUpdate = true;
                 }
 
@@ -307,7 +285,7 @@ export default class CouchClient {
 
                 return needsUpdate ? updates : null;
             })
-            .catch(() => ({ auth: dreijaAuth, views: compiledViews }))
+            .catch(() => ({ auth, views: compiledViews }))
             .then(doc => doc ? this.put(doc, docId) : null);
     }
 
@@ -388,13 +366,13 @@ export default class CouchClient {
             ])
             .then(([results, authModel]) => {
                 // Check permissions
-                if (!authModel.public) {
+                if (authModel) {
                     // Check if authed at all
                     if (!auth.authed) {
                         throw new Error('unauthorized');
                     }
                     // Check if has right permissions
-                    const needsRoles = authModel.roles || [];
+                    const needsRoles = Array.isArray(authModel) ? authModel : [];
                     const hasRoles = auth.roles || [];
                     if (!intersection(needsRoles, hasRoles).length === needsRoles.length) {
                         throw new Error('forbidden');
@@ -429,18 +407,29 @@ export default class CouchClient {
      * @return {Promise<AuthParams>}
      */
     getViewAuthModel(design, view) {
+        return this.getAuthModel(design)
+            .then(model => {
+                return model.views.hasOwnProperty(view) ?
+                    model.views[view] : DEFAULT_VIEW_AUTH;
+            })
+            .catch(e => {
+                logger.error(`Auth model missing for ${design}:${view}`);
+                return DEFAULT_VIEW_AUTH;
+            });
+    }
+
+    getAuthModel(design) {
         return this.get(`_design/${design}`)
             .then(doc => {
                 if (doc.auth) {
-                    const auth = doc.auth[view];
-                    if (auth) {
-                        return auth;
-                    }
-                    logger.warn(`Auth model missing for ${design}:${view}`);
+                    return doc.auth;
                 } else {
-                    logger.warn(`Auth model missing for ${design}`)
+                    logger.warn(`Auth model missing for ${design}`);
                 }
-                return DEFAULT_AUTH_PARAMS;
+                return {
+                    views: {},
+                    update: []
+                };
             });
     }
 

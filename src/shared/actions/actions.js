@@ -16,7 +16,9 @@ import {
     RECEIVE_RESOURCE,
     RECEIVE_RESOURCE_LIST,
     RESOURCE_LOADED_KEY,
-    RESOURCE_LOADING_KEY
+    RESOURCE_LOADING_KEY,
+    REQUEST_SEND_RESOURCE,
+    RECEIVE_SEND_RESOURCE
 } from '../constants';
 import { BROWSER } from '../env';
 import fetch from 'isomorphic-fetch';
@@ -27,21 +29,26 @@ import fetch from 'isomorphic-fetch';
  * non-browser environment.
  * @param  {String} url
  * @param  {StoreState} state - current store state
+ * @param  {FetchOpts?} opts - custom fetch opts. See `fetch` for more info.
  * @return {Promise<any>}
  */
-function smartFetch(url, state) {
+function smartFetch(url, state, opts = {}) {
     if (!BROWSER) {
-        const headers = {};
+        // Use any custom headers if they're passed in
+        const headers = opts.headers || {};
         const user = state.user;
         if (user) {
+            // TODO Merge existing cookies instead of overwriting? Not sure I
+            // see a good use case for this.
             headers.cookie = user.cookie;
             // TODO. csrf?
         }
-        return fetch(url, { headers });
+        return fetch(url, { ...opts, headers });
     }
     // In a browser, headers will be handled for us if we tell fetch it's ok.
+    // Note: it's possible to overwrite credentials with custom opts as desired.
     else {
-        return fetch(url, { credentials: 'same-origin' });
+        return fetch(url, { credentials: 'same-origin', ...opts });
     }
 }
 
@@ -223,6 +230,33 @@ export function ensureResourceList(view, key = '') {
     };
 }
 
+function receiveSendResource(type, doc, data) {
+    return {
+        type: RECEIVE_SEND_RESOURCE,
+        data
+    };
+}
+
+function requestSendResource(data) {
+    return {
+        type: REQUEST_SEND_RESOURCE,
+        data
+    };
+}
+
+export function sendResource(type, doc) {
+    return (dispatch, getState) => {
+        const data = { ...doc, type };
+        requestSendResource(data);
+        return smartFetch(
+                `${DB_ROOT}/update`,
+                getState(),
+                { method: 'POST', data }
+            )
+            .then(res => res.json())
+            .then(json => dispatch(receiveSendResource(type, doc, json)));
+    };
+}
 
 
 

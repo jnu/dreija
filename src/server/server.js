@@ -24,6 +24,7 @@ import CouchClient from './couch';
 import RedisStoreFactory from 'connect-redis';
 import User from './user';
 import DREIJA_VIEWS from './views';
+import DREIJA_AUTH from './auth';
 
 
 const RedisStore = RedisStoreFactory(expressSession);
@@ -572,8 +573,16 @@ function pingServices() {
 function start(opts) {
     return couchClient
         .ensureCouchDb()
-        .then(() => couchClient.ensureViews(DREIJA_DESIGN_DOC, DREIJA_VIEWS))
-        .then(() => couchClient.ensureViews(DREIJA_CUSTOM_DOC, dreija.views()))
+        .then(() => couchClient.ensureViews(
+            DREIJA_DESIGN_DOC,
+            DREIJA_VIEWS,
+            DREIJA_AUTH
+        ))
+        .then(() => couchClient.ensureViews(
+            DREIJA_CUSTOM_DOC,
+            dreija.views(),
+            dreija.auth()
+        ))
         .then(() => startServer(opts));
 }
 

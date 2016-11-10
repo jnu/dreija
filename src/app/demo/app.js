@@ -6,31 +6,41 @@ import { Route, IndexRoute } from 'react-router';
 import React, { Component } from 'react';
 import { Link } from 'react-router';
 import { withData } from '../../../';
-import { ensureResourceList } from '../../../actions';
+import { ensureResourceList, sendResource } from '../../../actions';
 import { RESOURCE_STORE_KEY } from '../../../';
 
 
 const App = ({ children }) => (
     <div>
-        <p>This is the app wrapper</p>
+        <div>This is the app wrapper</div>
         <div>{ children }</div>
     </div>
 );
+
 
 class Greeting extends Component {
 
     render() {
         return (
             <div>
-                <p>It works!</p>
-                <p>Supply your own routes to make something awesome.</p>
-                <p>You can access <Link to="/admin">Restricted Content</Link> through OAuth.</p>
-                <p>TODO: documentation</p>
+                <div>It works!</div>
+                <div>Supply your own routes to make something awesome.</div>
+                <div>You can access <Link to="/sample">Unrestricted Content</Link> using some
+                    helpers like <pre>@withData({'{'} fetch: ..., derive: ... {'}'})</pre>
+                    which connect remote data to the component through the redux store.
+                </div>
+                <div>Views and authentication are configured declaratively in a config file.</div>
+                <div>You can access <Link to="/admin">Restricted Content</Link> similarly,
+                   using a helper like <pre>@withAuth(...roles)</pre> that verifies the
+                   user has permission.
+                </div>
+                <div>Authentication happens through OAuth, so it's easy to <Link to="/login">login</Link>.
+                </div>
+                <div>TODO: documentation</div>
             </div>
         );
     }
 }
-
 
 
 @withData({
@@ -40,12 +50,13 @@ class Restricted extends Component  {
     render() {
         return (
             <div>
-                <p>You are viewing a restricted page</p>
+                <div>You are viewing a restricted page</div>
                 <RestrictedData></RestrictedData>
             </div>
         );
     }
 };
+
 
 @withData({
     derive: (state, props) => {
@@ -60,6 +71,63 @@ class RestrictedData extends Component {
     }
 }
 
+
+function getResource(store, ...path) {
+    const n = path.length;
+    const keyPathN = n << 1;
+    const keyPath = new Array(keyPathN);
+    let i = 0;
+    let j = 0;
+    while (j < keyPathN) {
+        keyPath[j] = (j % 2) ? RESOURCE_STORE_KEY : keyPath[j] = path[i++];
+        j++;
+    }
+    return store.resource.getIn(keyPath);
+}
+
+
+@withData({
+    fetch: dispatch => dispatch(ensureResourceList('candy')),
+    send: (dispatch, text) => dispatch(sendResource('candy', { content: text })),
+    derive: (state, props) => {
+        //const candy = getResource(state, 'candy');
+        const candy = state.resource.getIn(['candy', RESOURCE_STORE_KEY]);
+        return { candy };
+    }
+})
+class Unrestricted extends Component {
+
+    constructor(props) {
+        super(props);
+        this.state = { text: '' };
+        this.handleTextChange = this.handleTextChange.bind(this);
+        this.submit = this.submit.bind(this);
+    }
+
+    submit() {
+        const { text } = this.state;
+        this.send(text)
+            .then(() => this.setState({ text: '' }));
+    }
+
+    render() {
+        const candy = this.props.candy ? this.props.candy.toJS() : {};
+        return (
+            <div>
+                <div>Unrestricted Resource</div>
+                <div>Add something:</div>
+                <div>
+                    <textarea value={this.state.text}
+                              onChange={this.handleTextChange}></textarea>
+                </div>
+                <div><button type="button" onClick={this.submit}>Post</button></div>
+                <pre>{ JSON.stringify(candy, null, 2) }</pre>
+            </div>
+        );
+    }
+}
+
+
 const Login = () => (
     <div>
         <a href="/auth/google">Login with Google</a>
@@ -73,6 +141,7 @@ export default (dreija, env) => {
             <Route path="/" component={ App }>
                 <IndexRoute component={ Greeting } />
                 <Route path="/admin" component={ Restricted } onEnter={ withAuth() } />
+                <Route path="/sample" component={ Unrestricted } />
                 <Route path="/login" component={ Login } />
             </Route>
         )
@@ -92,11 +161,37 @@ export default (dreija, env) => {
                         emit(_id, val);
                     }
                 },
-                auth: {
-                    roles: [],
-                    public: false
-                }
+                auth: true
+            },
+            candy: {
+                map: doc => {
+                    if (doc.type === 'candy') {
+                        const { _id } = doc;
+                        const val = {
+                            id: _id,
+                            rev: doc._rev,
+                            name: doc.name,
+                            type: doc.type,
+                            content: doc.content
+                        };
+
+                        emit(_id, val);
+                    }
+                },
+                auth: false
             }
+        })
+        .auth({
+            views: {
+                candy: false,
+                users: true
+            },
+            update: [
+                {
+                    match: 'user',
+
+                }
+            ]
         })
         .dbname('testcreate')
         .dbhost(env.DBHOST)
