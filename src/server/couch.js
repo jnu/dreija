@@ -59,15 +59,35 @@ function compareStringified(a, b) {
  * @param  {Any} ctx - context in which to invoke function
  * @return {Promise<any>}
  */
-function promisify(method, args = [], ctx = null) {
-    if (!method) {
-        logger.error(`Cannot promisify method`);
-        throw new Error('failed to promisify');
+function promisify(ctx, method, args = []) {
+    let fn;
+    let fnArgs;
+    let context;
+
+    // Handle case where function was passed instead of method
+    if (arguments.length < 3 && typeof method !== 'string') {
+        fn = ctx;
+        fnArgs = method || [];
+        context = null;
+        if (!fn) {
+            logger.error(`Can't promisify function that doesn't exist`);
+            throw new Error(`failed to promisify`);
+        }
+    }
+    // Normal case: function is at ctx[method]
+    else {
+        fn = ctx[method];
+        fnArgs = args;
+        context = ctx;
+        if (!fn) {
+            logger.error(`Can't promisify method ${method} on ${JSON.stringify(ctx)}`);
+            throw new Error(`failed to promisify`);
+        }
     }
 
     return new Promise((resolve, reject) => {
         const callback = (e, v) => e ? reject(e) : resolve(v);
-        method.apply(ctx, [...args, callback]);
+        fn.apply(context, [...fnArgs, callback]);
     });
 }
 
@@ -105,15 +125,16 @@ export default class CouchClient {
             if (headers && headers['set-cookie']) {
                 const cookies = headers['set-cookie'];
                 const cookie = cookies[0];
+                logger.info('Saving CouchDB session');
                 promisify(
-                        redisClient.set,
-                        [DB_AUTH_KEY, cookie],
-                        redisClient
+                        redisClient,
+                        'set',
+                        [DB_AUTH_KEY, cookie]
                     )
                     .then(promisify(
-                        redisClient.expire,
-                        [DB_AUTH_KEY, COUCH_EXPIRE_S],
-                        redisClient
+                        redisClient,
+                        'expire',
+                        [DB_AUTH_KEY, COUCH_EXPIRE_S]
                     ))
                     .then(() => resolve(cookie), reject);
             } else {
@@ -224,7 +245,8 @@ export default class CouchClient {
      */
     createViews(designDoc, views) {
         const { db } = this;
-        return promisify(db.insert, [views, `_design/${designDoc}`], db);
+        logger.info(`Creating views in ${designDoc}`);
+        return promisify(db, 'insert', [views, `_design/${designDoc}`]);
     }
 
     /**
@@ -296,7 +318,8 @@ export default class CouchClient {
      */
     getDb() {
         const { conn, name } = this;
-        return promisify(conn.db.get, [name], conn.db);
+        logger.info(`Getting CouchDB database ${name} ...`);
+        return promisify(conn.db, 'get', [name]);
     }
 
     /**
@@ -305,7 +328,8 @@ export default class CouchClient {
      */
     createDb() {
         const { name, conn } = this;
-        return promisify(conn.db.create, [name], conn.db)
+        logger.info(`Creating CouchDB database ${name} ...`);
+        return promisify(conn.db, 'create', [name])
             .then(() => conn);
     }
 
@@ -348,7 +372,8 @@ export default class CouchClient {
      */
     get(id, params = {}) {
         const { db } = this;
-        return promisify(db.get, [id, params], db);
+        logger.info(`Getting document ${id} ...`);
+        return promisify(db, 'get', [id, params]);
     }
 
     /**
@@ -361,8 +386,9 @@ export default class CouchClient {
     getAllFromView(design, view, keys = null, auth = {}) {
         const { db } = this;
         const params = keys ? { keys } : {};
+        logger.info(`Getting multi from view ${design} ${view} ${keys} ...`);
         return Promise.all([
-                promisify(db.view, [design, view, params], db),
+                promisify(db, 'view', [design, view, params]),
                 this.getViewAuthModel(design, view)
             ])
             .then(([results, authModel]) => {
@@ -465,7 +491,8 @@ export default class CouchClient {
         return this.getCouchSession()
             .then(cookie => {
                 db.config.cookie = cookie;
-                return promisify(db.insert, params, db);
+                logger.info(`Putting document \`${ name || doc._id || 'new'}\` in view ...`);
+                return promisify(db, 'insert', params);
             });
     }
 
@@ -493,7 +520,8 @@ export default class CouchClient {
      */
     ping() {
         const { conn } = this;
-        return promisify(conn.dinosaur, [], conn)
+        logger.info('Pinging CouchDB ...');
+        return promisify(conn, 'dinosaur', [])
             .then(resp => resp.couchdb === 'Welcome')
             .catch(e => {
                 logger.error(`Error pinging CouchDB`, e);

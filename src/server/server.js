@@ -317,8 +317,10 @@ function getRequestAuth(req) {
  */
 app.get('/db/view/:view', (req, res) => {
     const view = req.params.view;
-    logger.info(`VIEW ALL ${DREIJA_CUSTOM_DOC} ${view}`);
-    couchClient.getAllFromView(DREIJA_CUSTOM_DOC, view, null, getRequestAuth(req))
+    const q = req.query && req.query.q;
+    const query = q ? [q] : null;
+    logger.info(`VIEW ALL ${DREIJA_CUSTOM_DOC} ${view} - ${q || '[no query]'}`);
+    couchClient.getAllFromView(DREIJA_CUSTOM_DOC, view, query, getRequestAuth(req))
         .then(results => res.send({ resource: results }))
         .catch(e => handleCouchRequestError('VIEW ALL', res, e));
 });
