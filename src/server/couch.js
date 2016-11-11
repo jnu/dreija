@@ -2,6 +2,7 @@ import logger from '../../lib/logger';
 import UglifyJS from 'uglify-js';
 import nano from 'nano';
 import { intersection } from 'lodash';
+import { DocAuth } from './doc-auth';
 
 
 /**
@@ -434,6 +435,23 @@ export default class CouchClient {
     }
 
     /**
+     * Get the design doc's document update authentication model.
+     * @param  {String} design
+     * @return {DocAuth}
+     */
+    getUpdateAuthModel(design) {
+        return this.getAuthModel(design)
+            .then(model => {
+                const { update } = model;
+                return new DocAuth(update);
+            })
+            .catch(e => {
+                logger.error(`Can't fetch update auth model for ${design}`);
+                return { validate: () => false };
+            });
+    }
+
+    /**
      * Create or update a document.
      *
      * !!!NOTE!!! This operates with an admin session!
@@ -449,6 +467,24 @@ export default class CouchClient {
                 db.config.cookie = cookie;
                 return promisify(db.insert, params, db);
             });
+    }
+
+    /**
+     * Put a document to CouchDB, validating the given user params against the
+     * auth model stored in the given design doc.
+     * @param  {String} design - name of design doc where the auth model lives
+     * @param  {Document} doc
+     * @param  {Auth} auth
+     * @return {Promise<Document>}
+     */
+    putWithAuth(design, doc, auth = {}) {
+        return this.getUpdateAuthModel(design)
+            .then(updateAuth => {
+                if (!updateAuth.validate(doc, auth.roles)) {
+                    throw new Error('forbidden');
+                }
+            })
+            .then(() => this.put(doc));
     }
 
     /**

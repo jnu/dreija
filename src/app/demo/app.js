@@ -72,25 +72,13 @@ class RestrictedData extends Component {
 }
 
 
-function getResource(store, ...path) {
-    const n = path.length;
-    const keyPathN = n << 1;
-    const keyPath = new Array(keyPathN);
-    let i = 0;
-    let j = 0;
-    while (j < keyPathN) {
-        keyPath[j] = (j % 2) ? RESOURCE_STORE_KEY : keyPath[j] = path[i++];
-        j++;
-    }
-    return store.resource.getIn(keyPath);
-}
-
-
 @withData({
     fetch: dispatch => dispatch(ensureResourceList('candy')),
-    send: (dispatch, text) => dispatch(sendResource('candy', { content: text })),
+    send: (dispatch, text) => {
+        return dispatch(sendResource('candy', { content: text }))
+            .then(() => dispatch(ensureResourceList('candy')));
+    },
     derive: (state, props) => {
-        //const candy = getResource(state, 'candy');
         const candy = state.resource.getIn(['candy', RESOURCE_STORE_KEY]);
         return { candy };
     }
@@ -106,8 +94,12 @@ class Unrestricted extends Component {
 
     submit() {
         const { text } = this.state;
-        this.send(text)
+        this.sendData(text)
             .then(() => this.setState({ text: '' }));
+    }
+
+    handleTextChange() {
+        this.setState({ text: this.refs.text.value });
     }
 
     render() {
@@ -118,7 +110,9 @@ class Unrestricted extends Component {
                 <div>Add something:</div>
                 <div>
                     <textarea value={this.state.text}
-                              onChange={this.handleTextChange}></textarea>
+                              ref='text'
+                              onChange={this.handleTextChange}>
+                    </textarea>
                 </div>
                 <div><button type="button" onClick={this.submit}>Post</button></div>
                 <pre>{ JSON.stringify(candy, null, 2) }</pre>
@@ -188,8 +182,18 @@ export default (dreija, env) => {
             },
             update: [
                 {
-                    match: 'user',
-
+                    match: {
+                        field: 'type',
+                        value: 'user'
+                    },
+                    auth: ['admin']
+                },
+                {
+                    match: {
+                        field: 'type',
+                        value: 'candy'
+                    },
+                    auth: false
                 }
             ]
         })

@@ -15,12 +15,16 @@ export function withData(opts = {}) {
     return Cls => {
         const {
             fetch,
+            send,
             derive = DEFAULT_DERIVE
         } = opts;
 
         if (fetch) {
-            // Attach static fetch method.
+            // Attach fetch as static / prototype
             Cls.fetchData = fetch;
+            Cls.prototype.fetchData = function _fetchData(...args) {
+                return fetch(this.props.dispatch, ...args);
+            };
 
             // Fetch data when component is mounted.
             const originalDidMount = Cls.prototype.componentDidMount;
@@ -28,6 +32,14 @@ export function withData(opts = {}) {
                 const { dispatch, params } = this.props;
                 fetch(dispatch, params);
                 return originalDidMount && originalDidMount.apply(this, ...args);
+            };
+        }
+
+        if (send) {
+            // Add a `sendData` method
+            Cls.sendData = send;
+            Cls.prototype.sendData = function _sendData(...args) {
+                return send(this.props.dispatch, ...args);
             };
         }
 

@@ -25,30 +25,39 @@ import fetch from 'isomorphic-fetch';
 
 
 /**
- * A smart fetch operation that reads header data from the current store in a
- * non-browser environment.
+ * A fancier fetch operation that attaches header data from the current store
+ * in a non-browser environment.
  * @param  {String} url
  * @param  {StoreState} state - current store state
  * @param  {FetchOpts?} opts - custom fetch opts. See `fetch` for more info.
  * @return {Promise<any>}
  */
-function smartFetch(url, state, opts = {}) {
+function fancyFetch(url, state, opts = {}) {
+    const headers = opts.headers || {};
+    headers['x-csrf-token'] = state.user && state.user.csrfToken;
+
+    // Use .data as a shorthand for posting JSON.
+    if (opts.data) {
+        opts.method = opts.method || 'POST';
+        opts.body = JSON.stringify(opts.data);
+        headers['Content-Type'] = 'application/json; charset=utf-8';
+        delete opts.data;
+    }
+
     if (!BROWSER) {
         // Use any custom headers if they're passed in
-        const headers = opts.headers || {};
         const user = state.user;
         if (user) {
             // TODO Merge existing cookies instead of overwriting? Not sure I
             // see a good use case for this.
             headers.cookie = user.cookie;
-            // TODO. csrf?
         }
         return fetch(url, { ...opts, headers });
     }
     // In a browser, headers will be handled for us if we tell fetch it's ok.
     // Note: it's possible to overwrite credentials with custom opts as desired.
     else {
-        return fetch(url, { credentials: 'same-origin', ...opts });
+        return fetch(url, { credentials: 'same-origin', ...opts, headers });
     }
 }
 
@@ -85,7 +94,7 @@ export function selectPost(id) {
 function fetchPost(id) {
     return (dispatch, getState) => {
         dispatch(requestPost(id));
-        return smartFetch(`${DB_POSTS}/${id}`, getState())
+        return fancyFetch(`${DB_POSTS}/${id}`, getState())
             .then(req => req.json())
             .then(json => dispatch(receivePost(id, json)));
     };
@@ -167,7 +176,7 @@ function receiveResource(view, key, data = {}) {
 function fetchResource(view, key) {
     return (dispatch, getState) => {
         dispatch(requestResource(view, key));
-        return smartFetch(`${DB_ROOT}/view/${view}/${key}`, getState())
+        return fancyFetch(`${DB_ROOT}/view/${view}/${key}`, getState())
             .then(res => res.json())
             .then(json => dispatch(receiveResource(view, key, json.resource)));
     };
@@ -216,7 +225,7 @@ function receiveResourceList(view, key = '', data = {}) {
 function fetchResourceList(view, key = '') {
     return (dispatch, getState) => {
         dispatch(requestResourceList(view, key));
-        return smartFetch(`${DB_ROOT}/view/${view}?q=${key}`, getState())
+        return fancyFetch(`${DB_ROOT}/view/${view}?q=${key}`, getState())
             .then(res => res.json())
             .then(json => dispatch(receiveResourceList(view, key, json.resource)));
     };
@@ -248,8 +257,8 @@ export function sendResource(type, doc) {
     return (dispatch, getState) => {
         const data = { ...doc, type };
         requestSendResource(data);
-        return smartFetch(
-                `${DB_ROOT}/update`,
+        return fancyFetch(
+                `${DB_ROOT}/resource`,
                 getState(),
                 { method: 'POST', data }
             )
@@ -289,7 +298,7 @@ function receiveIndex(json) {
 function fetchIndex() {
     return (dispatch, getState) => {
         dispatch(requestIndex());
-        return smartFetch(`${DB_POSTS}`, getState())
+        return fancyFetch(`${DB_POSTS}`, getState())
             .then(req => req.json())
             .then(json => dispatch(receiveIndex(json)));
     };

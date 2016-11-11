@@ -2,6 +2,7 @@ import path from 'path';
 import fs from 'fs';
 import express from 'express';
 import spiderDetector from 'spider-detector';
+import bodyParser from 'body-parser';
 import { renderToString, renderToStaticMarkup } from 'react-dom/server';
 import { createElement } from 'react';
 import { match } from 'react-router';
@@ -176,20 +177,23 @@ function makeInterceptError(res, code, message = null) {
 
 function getCurrentUser(req, opts = { private: false }) {
     const user = req ? req.user : null;
-
-    if (!user) {
-        return null;
-    }
-
     const info = {
-        id: user._id,
-        roles: user.roles
+        id: null,
+        roles: null,
+        csrfToken: req ? req.csrfToken() : null,
+        cookie: null
     };
 
-    // Add private info to hash if requested
-    if (opts.private) {
-        info.cookie = req.headers ? req.headers['cookie'] : null;
-        info.csrfToken = req.csrfToken();
+    // If user is not authed, return what we have.
+    if (user) {
+        // Attach user info to object.
+        info.id = user._id;
+        info.roles = user.roles;
+
+        // Add private info to hash if requested.
+        if (opts.private) {
+            info.cookie = req.headers ? req.headers['cookie'] : null;
+        }
     }
 
     return info;
@@ -237,6 +241,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.use(csurf());
+app.use(bodyParser.json());
 
 
 // Authentication
@@ -283,8 +288,8 @@ app.get('/db/admin', ensureAuth, proxy(DB_PATH, {
  * @param  {Response} res
  * @param  {Error} e
  */
-function handleViewError(res, e) {
-    logger.warn('VIEW QUERY FAILED', e);
+function handleCouchRequestError(key, res, e) {
+    logger.warn(`${key} FAILED`, e);
     switch (e && e.message) {
         case 'unauthorized':
             return res.sendStatus(401);
@@ -312,10 +317,10 @@ function getRequestAuth(req) {
  */
 app.get('/db/view/:view', (req, res) => {
     const view = req.params.view;
-    logger.info(`VIEW ${DREIJA_CUSTOM_DOC} ${view}`);
+    logger.info(`VIEW ALL ${DREIJA_CUSTOM_DOC} ${view}`);
     couchClient.getAllFromView(DREIJA_CUSTOM_DOC, view, null, getRequestAuth(req))
         .then(results => res.send({ resource: results }))
-        .catch(e => handleViewError(res, e));
+        .catch(e => handleCouchRequestError('VIEW ALL', res, e));
 });
 
 /**
@@ -323,19 +328,27 @@ app.get('/db/view/:view', (req, res) => {
  */
 app.get('/db/view/:view/:id', (req, res) => {
     const { view, id } = req.params;
-    logger.info(`VIEW KEY ${DREIJA_CUSTOM_DOC} ${view} ${id}`);
+    logger.info(`VIEW ONE ${DREIJA_CUSTOM_DOC} ${view} ${id}`);
     couchClient.getOneFromView(DREIJA_CUSTOM_DOC, view, [id], getRequestAuth(req))
         .then(result => res.send({ resource: result }))
-        .catch(e => handleViewError(res, e));
+        .catch(e => handleCouchRequestError('VIEW ONE', res, e));
 });
 
 /**
  * Resource: get a resource by ID directly
  */
-app.get('/db/resource/:id', (req, res) => {
+app.get('/db/resource/:id', ensureAuth, (req, res) => {
     const { id } = req.params;
     logger.info(`GET ID ${id}`);
     couchClient.get(id).then(result => res.send({ resource: result }));
+});
+
+app.post('/db/resource', (req, res) => {
+    const json = req.body;
+    logger.info(`PUT NEW ${json}`);
+    couchClient.putWithAuth(DREIJA_CUSTOM_DOC, json, getRequestAuth(req))
+        .then(result => res.send({ resource: result }))
+        .catch(e => handleCouchRequestError('PUT NEW', res, e));
 });
 
 
