@@ -78,6 +78,17 @@ const secrets = {
     sessionSecret: 'This is not secret.'
 };
 
+/**
+ * CLI config settings.
+ * @type {Object}
+ */
+const runtimeConfig = {
+    /**
+     * App name that will be used to form the OAuth2 callback.
+     * @type {String}
+     */
+    host: `http://127.0.0.1:${PORT}`
+};
 
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -100,6 +111,10 @@ while (argv.length) {
             } catch (e) {
                 logger.error(`Error parsing secrets file ${secretsPath}`, e);
             }
+            break;
+        case '-h':
+        case '--host':
+            runtimeConfig.host = argv.shift();
             break;
         default:
             if (arg[0] === '-') {
@@ -228,7 +243,7 @@ passport.deserializeUser((id, done) => {
 passport.use(new GoogleStrategy({
         clientID: secrets.oauth.google.clientId,
         clientSecret: secrets.oauth.google.clientSecret,
-        callbackURL: secrets.oauth.google.callbackUrl
+        callbackURL: `${runtimeConfig.host.replace(/\/$/, '')}${secrets.oauth.google.callbackPath}`
     },
     (req, accessToken, refreshToken, profile, done) => {
         logger.info(`Successful google auth for ${profile.id}`);
