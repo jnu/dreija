@@ -329,7 +329,11 @@ export default class CouchClient {
     createDb() {
         const { name, conn } = this;
         logger.info(`Creating CouchDB database ${name} ...`);
-        return promisify(conn.db, 'create', [name])
+        return this.getCouchSession()
+            .then(cookie => {
+                conn.config.cookie = cookie;
+                return promisify(conn.db, 'create', [name]);
+            })
             .then(() => conn);
     }
 
@@ -339,8 +343,7 @@ export default class CouchClient {
      */
     ensureCouchDb() {
         logger.info(`Checking database ${this.name} (might take a minute) ...`);
-        return this.getCouchSession()
-            .then(() => this.getDb())
+        return this.getDb()
             .catch(e => {
                 if (e.statusCode === 404) {
                     logger.warn(`DB ${this.name} does not exist. Instrumenting ...`);

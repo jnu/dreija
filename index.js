@@ -6,8 +6,12 @@ import { Root } from './src/shared/components';
 
 const dreija =  new Dreija({
     port: 3030,
-    dbhost: 'http://localhost:5984',
-    root: Root
+    dbhost: 'localhost',
+    root: Root,
+    loginRoute: {
+        failure: '/login',
+        success: '/admin'
+    }
 });
 
 if (dreijaConfig) {
@@ -16,7 +20,9 @@ if (dreijaConfig) {
 
 export default dreija;
 
-export { actions } from './src/shared/actions';
+export {
+    actions
+} from './src/shared/actions';
 
 export {
     RESOURCE_STORE_KEY
@@ -27,4 +33,8 @@ export {
     withData
 } from './src/shared/lib/decorators/redux';
 
-export { withAuth } from './src/shared/lib/auth';
+export {
+    withAuth
+} from './src/shared/lib/auth';
+
+

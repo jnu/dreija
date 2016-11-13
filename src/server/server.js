@@ -252,8 +252,8 @@ app.get('/auth/google', passport.authenticate('google', { scope: [
 
 app.get('/auth/google/callback',
     passport.authenticate('google', {
-        successRedirect: '/admin',
-        failureRedirect: '/login'
+        failureRedirect: dreija.loginRoute().failure,
+        successRedirect: dreija.loginRoute().success
     })
 );
 

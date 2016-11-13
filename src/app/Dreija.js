@@ -8,6 +8,7 @@ export default class Dreija {
             routes: null,
             views: null,
             auth: null,
+            loginRoute: null,
             root: null,
             port: null,
             dbhost: null,
@@ -21,6 +22,7 @@ export default class Dreija {
             // routes has special getter/setters
             'views',
             'auth',
+            'loginRoute',
             'root',
             'port',
             'dbhost',

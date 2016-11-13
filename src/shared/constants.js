@@ -27,6 +27,7 @@ export const IS_FETCHING_INDEX_KEY = '@@is_fetching_index';
 
 
 
+export const RESOURCE_LOADING_SET_KEY = '@@resources_in_flight';
 export const RESOURCE_STORE_KEY = '@@resources';
 export const RESOURCE_LOADED_KEY = '@@is_loaded';
 export const RESOURCE_LOADING_KEY = '@@is_loading';

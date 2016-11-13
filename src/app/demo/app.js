@@ -7,15 +7,25 @@ import React, { Component } from 'react';
 import { Link } from 'react-router';
 import { withData } from '../../../';
 import { ensureResourceList, sendResource } from '../../../actions';
-import { RESOURCE_STORE_KEY } from '../../../';
+import { getResource, isFetching } from '../../../helpers';
 
 
-const App = ({ children }) => (
-    <div>
-        <div>This is the app wrapper</div>
-        <div>{ children }</div>
-    </div>
-);
+@withData({
+    derive: (state, props) => ({ ...props, inFlight: isFetching(state) })
+})
+class App extends Component {
+    render() {
+        const { children, inFlight } = this.props;
+        return (
+            <div>
+                <div>This is the app wrapper.
+                    <span>(Resource state: { inFlight ? 'fetching' : 'loaded' })</span>
+                </div>
+                <div>{ children }</div>
+            </div>
+        );
+    }
+}
 
 
 class Greeting extends Component {
@@ -23,20 +33,19 @@ class Greeting extends Component {
     render() {
         return (
             <div>
-                <div>It works!</div>
-                <div>Supply your own routes to make something awesome.</div>
+                <div>It works! Supply your own routes to make something awesome.
+                Views and authentication are configured declaratively in a config file.
+                </div>
                 <div>You can access <Link to="/sample">Unrestricted Content</Link> using some
                     helpers like <pre>@withData({'{'} fetch: ..., derive: ... {'}'})</pre>
                     which connect remote data to the component through the redux store.
                 </div>
-                <div>Views and authentication are configured declaratively in a config file.</div>
                 <div>You can access <Link to="/admin">Restricted Content</Link> similarly,
                    using a helper like <pre>@withAuth(...roles)</pre> that verifies the
                    user has permission.
                 </div>
                 <div>Authentication happens through OAuth, so it's easy to <Link to="/login">login</Link>.
                 </div>
-                <div>TODO: documentation</div>
             </div>
         );
     }
@@ -50,7 +59,7 @@ class Restricted extends Component  {
     render() {
         return (
             <div>
-                <div>You are viewing a restricted page</div>
+                <div>You are viewing a restricted page. Go <Link to="/">Home</Link></div>
                 <RestrictedData></RestrictedData>
             </div>
         );
@@ -60,7 +69,7 @@ class Restricted extends Component  {
 
 @withData({
     derive: (state, props) => {
-        const users = state.resource.getIn(['users', RESOURCE_STORE_KEY]);
+        const users = getResource(state, 'users');
         return { users };
     }
 })
@@ -79,7 +88,7 @@ class RestrictedData extends Component {
             .then(() => dispatch(ensureResourceList('candy')));
     },
     derive: (state, props) => {
-        const candy = state.resource.getIn(['candy', RESOURCE_STORE_KEY]);
+        const candy = getResource(state, 'candy');
         return { candy };
     }
 })
@@ -107,6 +116,7 @@ class Unrestricted extends Component {
         return (
             <div>
                 <div>Unrestricted Resource</div>
+                <div><Link to="/">Home</Link></div>
                 <div>Add something:</div>
                 <div>
                     <textarea value={this.state.text}

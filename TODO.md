@@ -6,4 +6,4 @@ TODO
 * Set custom oauth redirects
 * provide helpers for common data access techniques
 * provide helpers for common state checks (e.g. isFetchingAny)
-
+* Documentation
