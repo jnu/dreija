@@ -149,7 +149,7 @@ export default class CouchClient {
      */
     createDbSession() {
         const { conn, user, pass } = this;
-        logger.info('Authenticating with DB ...');
+        logger.info(`Authenticating with DB with ${user}:xxx ...`);
 
         return new Promise((resolve, reject) => {
             conn.auth(user, pass, (err, body, headers) => {
