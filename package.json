@@ -1,6 +1,6 @@
 {
   "name": "dreija",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Lightweight isomorphic JS blogging engine",
   "repository": {
     "type": "git",
