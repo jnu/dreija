@@ -255,7 +255,7 @@ function requestSendResource(data) {
 
 export function sendResource(type, doc) {
     return (dispatch, getState) => {
-        const data = { ...doc, type };
+        const data = { type, ...doc };
         requestSendResource(data);
         return fancyFetch(
                 `${DB_ROOT}/resource`,
