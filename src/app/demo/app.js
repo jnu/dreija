@@ -83,7 +83,7 @@ class RestrictedData extends Component {
 
 @withData({
     fetch: dispatch => dispatch(ensureResourceList('candy')),
-    send: (dispatch, text) => {
+    send: (dispatch, props, text) => {
         return dispatch(sendResource('candy', { content: text }))
             .then(() => dispatch(ensureResourceList('candy')));
     },

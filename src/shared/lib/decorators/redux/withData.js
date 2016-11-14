@@ -39,7 +39,7 @@ export function withData(opts = {}) {
             // Add a `sendData` method
             Cls.sendData = send;
             Cls.prototype.sendData = function _sendData(...args) {
-                return send(this.props.dispatch, ...args);
+                return send(this.props.dispatch, this.props, ...args);
             };
         }
 
