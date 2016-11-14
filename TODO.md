@@ -7,3 +7,8 @@ TODO
 * provide helpers for common data access techniques
 * provide helpers for common state checks (e.g. isFetchingAny)
 * Documentation
+
+
+BUGS
+===
+* check auth on pre-update post to prevent changing `type`
