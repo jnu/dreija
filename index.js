@@ -11,7 +11,8 @@ const dreija =  new Dreija({
     loginRoute: {
         failure: '/login',
         success: '/admin'
-    }
+    },
+    title: 'Untitled App'
 });
 
 if (dreijaConfig) {

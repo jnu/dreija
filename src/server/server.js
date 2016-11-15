@@ -48,7 +48,11 @@ const headScriptBlock = headScripts ?
 // Constants
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-const tpl = template.replace('<!-- BUNDLE -->', headScriptBlock);
+const title = dreija.title();
+
+const tpl = template
+    .replace('<!-- BUNDLE -->', headScriptBlock)
+    .replace('<!-- TITLE -->', title);
 
 const Root = dreija.root();
 

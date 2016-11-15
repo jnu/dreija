@@ -15,7 +15,8 @@ export default class Dreija {
             dbport: null,
             dbname: null,
             redishost: null,
-            redisport: null
+            redisport: null,
+            title: null
         }, initialState);
 
         this._makeGetterSetters([
@@ -29,7 +30,8 @@ export default class Dreija {
             'dbport',
             'dbname',
             'redishost',
-            'redisport'
+            'redisport',
+            'title'
         ]);
     }
 

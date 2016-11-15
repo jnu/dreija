@@ -141,6 +141,7 @@ const Login = () => (
 
 export default (dreija, env) => {
     dreija
+        .title('Demo App')
         .routes(({ withAuth }) =>
             <Route path="/" component={ App }>
                 <IndexRoute component={ Greeting } />
