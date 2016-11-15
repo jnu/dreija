@@ -6,9 +6,5 @@ TODO
 * Set custom oauth redirects
 * provide helpers for common data access techniques
 * provide helpers for common state checks (e.g. isFetchingAny)
+    x done isFetching... are there others?
 * Documentation
-
-
-BUGS
-===
-* check auth on pre-update post to prevent changing `type`

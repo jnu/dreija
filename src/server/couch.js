@@ -508,10 +508,20 @@ export default class CouchClient {
      * @return {Promise<Document>}
      */
     putWithAuth(design, doc, auth = {}) {
-        return this.getUpdateAuthModel(design)
-            .then(updateAuth => {
+        const { _id } = doc;
+        return Promise.all([
+                this.getUpdateAuthModel(design),
+                _id && this.get(_id)
+            ])
+            .then(([updateAuth, existingDoc]) => {
+                // Check that the user's permission checks out both on the
+                // existing doc with the given ID (if there is one) and the
+                // proposed update.
                 if (!updateAuth.validate(doc, auth.roles)) {
-                    throw new Error('forbidden');
+                    throw new Error('forbidden - lack permission for proposed update');
+                }
+                if (existingDoc && !updateAuth.validate(existingDoc, auth.roles)) {
+                    throw new Error('forbidden - lack permission to update existing');
                 }
             })
             .then(() => this.put(doc));
