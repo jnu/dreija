@@ -33,6 +33,21 @@ export function withData(opts = {}) {
                 fetch(dispatch, params);
                 return originalDidMount && originalDidMount.apply(this, ...args);
             };
+
+            // Fetch data when component's params are changing. This makes the
+            // naive assumption that if params change, content will also change.
+            // We could be more clever about checking.
+            const originalWillReceiveProps = Cls.prototype.componentWillReceiveProps;
+            Cls.prototype.componentWillReceiveProps = function _cmpWillRcvProps(props, ...args) {
+                const currentParams = this.props.params;
+                const nextParams = props.params;
+
+                if (!currentParams !== nextParams) {
+                    fetch(props.dispatch, nextParams);
+                }
+
+                return originalWillReceiveProps && originalWillReceiveProps.apply(this, [props].concat(args));
+            };
         }
 
         if (send) {
