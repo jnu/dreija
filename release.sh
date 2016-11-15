@@ -8,6 +8,16 @@ NEWVERSION=$(echo $1 | sed 's/v//')
 NEWTAG="v$NEWVERSION"
 semverGT "$NEWVERSION" "$LASTVERSION"
 ISGTVERSION=$?
+NODEVERSION=$(node -v | sed 's/v//')
+semverGT "$NODEVERSION" "4.5.99"
+ISNODEVERSIONOK=$?
+
+if [ "$ISNODEVERSIONOK" != "0" ]; then
+    echo >&2
+    echo >&2 "Must release with node version >= 4.6.0"
+    echo >&2
+    exit 1
+fi
 
 if [ "$ISGTVERSION" != "0" ]; then
     echo >&2
