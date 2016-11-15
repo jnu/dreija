@@ -42,7 +42,7 @@ export function withData(opts = {}) {
                 const currentParams = this.props.params;
                 const nextParams = props.params;
 
-                if (!currentParams !== nextParams) {
+                if (currentParams !== nextParams) {
                     fetch(props.dispatch, nextParams);
                 }
 
