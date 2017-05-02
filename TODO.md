@@ -8,3 +8,4 @@ TODO
 * provide helpers for common state checks (e.g. isFetchingAny)
     x done isFetching... are there others?
 * Documentation
+* Resources fetched from different routes should not be cache duplicated

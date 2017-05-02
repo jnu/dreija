@@ -44,15 +44,57 @@ const headScriptBlock = headScripts ?
 
 
 
+/**
+ * Create a compiled template that fills in values from an input object. This
+ * is much faster than string replace.
+ *
+ * The compiled template parameter names are derived from <!-- --> comments in
+ * the HTML string. So, a comment like <!-- FOO --> will be replaced by a
+ * reference to params['foo'] when the template function is called. This works
+ * as well for JavaScript block-style comments in block style: */
+// I.e., like this: /** FOO */
+ /*
+ * Missing values are silently ignored when the template function is called,
+ * but note that the resulting template can be recompiled from the output.
+ *
+ * For example,
+ * const tpl1 = `
+ * <div>
+ *     <div><!-- FOO --></div>
+ *     <div><!-- BAR --></div>
+ * </div>
+ * `;
+ *
+ * const cTpl1 = compileTemplate(tpl1);
+ * const tpl2 = cTpl1({ FOO: 'hello' });
+ *
+ * tpl2 === `
+ * <div>
+ *     <div>hello</div>
+ *     <div><!-- BAR --></div>
+ * </div>
+ * `
+ *
+ * Now, tpl2 can itself be compiled into a new template.
+ * @return {Function}
+ */
+function compileTemplate(tpl) {
+    const fromObj = tpl.replace(/([^\\])?"/g, '$1\\"')
+                     // TODO could preserve newlines. Right now just prevent
+                     // them from busting the compiled template.
+                     .replace(/([^\\])?\n/g, '$1\\\n')
+                     .replace(/\<\!\-\-\s*(\w+)\s*\-\-\>/g, '" + (o.hasOwnProperty("$1") ? o["$1"] : "<!-- $1 -->") + "')
+                     .replace(/\/\*\*\s*(\w+)\s*\*\//g, '" + (o.hasOwnProperty("$1") ? o["$1"] : "/** $1 */") + "');
+    const script = 'return "' + fromObj + '";';
+    return new Function('o', script);
+}
+
+
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Constants
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 const title = dreija.title();
-
-const tpl = template
-    .replace('<!-- BUNDLE -->', headScriptBlock)
-    .replace('<!-- TITLE -->', title);
 
 const Root = dreija.root();
 
@@ -73,6 +115,58 @@ const DB_PATH = `http://${DB_HOST}:${DB_PORT}`;
 const DREIJA_DESIGN_DOC = 'dreija_v0';
 
 const DREIJA_CUSTOM_DOC = 'app';
+
+// Bind certain static initial variables to the template.
+const initialTemplate = compileTemplate(template);
+
+const injectHead = [];
+const injectBody = [];
+
+dreija.injections().forEach(function(spec) {
+    let dest;
+
+    if (spec.location === 'head') {
+        dest = injectHead;
+    } else if (spec.location === 'body') {
+        dest = injectBody;
+    } else {
+        throw new Error('Invalid injection destination: ' + spec.location);
+    }
+
+    let attrs = [];
+    if (spec.attrs) {
+        for (let key in spec.attrs) {
+            if (spec.attrs.hasOwnProperty(key)) {
+                attrs.push(key + '="' + spec.attrs[key].replace(/"/g, '\\"') + '"');
+            }
+        }
+    }
+
+    if (!spec.tag) {
+        throw new Error('Missing tag');
+    }
+
+    // Create element from tag and attrs.
+    let el = '<' + spec.tag + ' ' + attrs.join(' ');
+    // Empty non-script tags can be self-closed.
+    if (!spec.content && !spec.tag.toLowerCase() === 'script') {
+        el += ' />';
+    } else {
+        el += '>' + (spec.content || '') + '</' + spec.tag + '>';
+    }
+
+    // Add to the proper injection target.
+    dest.push(el);
+});
+
+const initialTplParams = {
+    BUNDLE: headScriptBlock,
+    TITLE: title,
+    INJECT_HEAD: injectHead.join(''),
+    INJECT_BODY: injectBody.join('')
+};
+
+const tpl = compileTemplate(initialTemplate(initialTplParams));
 
 
 /**
@@ -504,19 +598,19 @@ app.use(function handleIndexRoute(req, res, next) {
                     }));
 
                     // Inject markup into page
-                    let page = tpl.replace('<!-- MARKUP -->', embeddableMarkup);
+                    const tplParams = {
+                        MARKUP: embeddableMarkup,
+                        DATA: ''
+                    };
 
                     // Encode store data and inject it for bootstrapping, if
                     // this is not a static page.
                     if (!USE_STATIC) {
                         const encodedData = encode(store.getState());
-                        page = page.replace(
-                            '/** DATA */',
-                            `JN.load('${encodedData}');`
-                        );
+                        tplParams['DATA'] = `JN.load('${encodedData}');`;
                     }
 
-                    res.send(page);
+                    res.send(tpl(tplParams));
                 }, e => {
                     logger.error('Failed to fetch data for', initUrl, 'Error:', e);
                 })

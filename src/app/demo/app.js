@@ -210,5 +210,6 @@ export default (dreija, env) => {
         })
         .dbname('testcreate')
         .dbhost(env.DBHOST)
-        .redishost(env.REDISHOST);
+        .redishost(env.REDISHOST)
+        .injectScript('console.log("you can inject custom things, too.")', false);
 };

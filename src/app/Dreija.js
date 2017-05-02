@@ -16,7 +16,8 @@ export default class Dreija {
             dbname: null,
             redishost: null,
             redisport: null,
-            title: null
+            title: null,
+            injections: [],
         }, initialState);
 
         this._makeGetterSetters([
@@ -62,6 +63,26 @@ export default class Dreija {
         return this.state.routes({
             withAuth: getWithAuthUtil(store)
         });
+    }
+
+    injectScript(script, body) {
+        this.state.injections.push({
+            tag: 'script',
+            location: !!body ? 'body' : 'head',
+            attrs: {
+                type: 'text/javascript'
+            },
+            content: script
+        });
+    }
+
+    inject(injectionSpec) {
+        // TODO(jnu) document how to use this.
+        this.state.injections.push(injectionSpec);
+    }
+
+    injections() {
+        return this.state.injections.slice();
     }
 
 }
