@@ -10,6 +10,7 @@ import proxy from 'express-http-proxy';
 import { encode } from '../shared/lib/encoding';
 import Immutable from 'immutable';
 import dreija from '../../';
+import dreijaCustomAPI from 'dreija-api-config';
 import configureStore from '../shared/configureStore';
 import template from '../template/index.html';
 import runtime from 'dreija-runtime';
@@ -338,18 +339,23 @@ passport.deserializeUser((id, done) => {
             done(null, false);
         });
 });
-passport.use(new GoogleStrategy({
-        clientID: secrets.oauth.google.clientId,
-        clientSecret: secrets.oauth.google.clientSecret,
-        callbackURL: `${runtimeConfig.host.replace(/\/$/, '')}${secrets.oauth.google.callbackPath}`
-    },
-    (req, accessToken, refreshToken, profile, done) => {
-        logger.info(`Successful google auth for ${profile.id}`);
-        // TODO keep more info from google profile
-        userModel.findOrCreate({ googleId: profile.id })
-            .then(user => done(null, user), done);
-    })
-);
+function getOAuthCallbackURL(path) {
+    return `${runtimeConfig.host.replace(/\/$/, '')}${path}`;
+}
+if (secrets.oauth && secrets.oauth.google) {
+    passport.use(new GoogleStrategy({
+            clientID: secrets.oauth.google.clientId,
+            clientSecret: secrets.oauth.google.clientSecret,
+            callbackURL: getOAuthCallbackURL(secrets.oauth.google.callbackPath)
+        },
+        (req, accessToken, refreshToken, profile, done) => {
+            logger.info(`Successful google auth for ${profile.id}`);
+            // TODO keep more info from google profile
+            userModel.findOrCreate({ googleId: profile.id })
+                .then(user => done(null, user), done);
+        })
+    );
+}
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -524,8 +530,19 @@ app.get('/db/posts/:id', proxy(DB_PATH, {
     }
 }));
 
+
+
 // Static assets directory
 app.use('/public', express.static(path.join('.', 'dist', 'public')));
+
+// Apply custom API config if given.
+if (dreijaCustomAPI) {
+    dreijaCustomAPI(app, {
+        redisClient,
+        userModel,
+        couchClient,
+    });
+}
 
 // Detect when static pages should be sent
 app.use(spiderDetector.middleware());
