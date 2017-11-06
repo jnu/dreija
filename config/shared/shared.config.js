@@ -38,7 +38,7 @@ var config = {
                 test: /\.png$/,
                 use: [
                     'url-loader?limit=20000&mimetype=image/png&name=[hash].[ext]',
-                    'image-webpack?{progressive:true, optimizationLevel: 7, pngquant:{quality: "50-90", speed: 2}}'
+                    'image-webpack-loader?{progressive:true, optimizationLevel: 7, pngquant:{quality: "50-90", speed: 2}}'
                 ]
             },
             {
