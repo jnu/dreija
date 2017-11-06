@@ -55,7 +55,11 @@ var config = {
     },
 
     resolve: {
-        root: APP_ROOT
+        modules: [
+            APP_ROOT,
+            path.resolve(__dirname, '..', '..', 'src', 'shared'),
+            'node_modules',
+        ]
     },
 
     module: {
@@ -63,7 +67,7 @@ var config = {
             {
                 test: /\.less$/,
                 exclude: /node_modules[\.\\](?!dreija)/,
-                loaders: ['css', 'less']
+                use: ['css-loader', 'less-loader']
             }
         ]
     },
@@ -76,10 +80,11 @@ var config = {
     plugins: [
 
         // Use banner plugin to inject source map support
-        new BannerPlugin(
-            'require("source-map-support").install();',
-            { raw: true, entryOnly: false }
-        )
+        new BannerPlugin({
+            banner: 'require("source-map-support").install();',
+            raw: true,
+            entryOnly: false
+        })
 
     ],
 

@@ -18,7 +18,7 @@ const reducer = combineReducers({
 
 const middleware = [
     thunkMiddleware,
-    DEBUG && BROWSER && loggerMiddleware
+    process.env.NODE_ENV === 'development' && BROWSER && loggerMiddleware
 ].filter(x => !!x);
 
 

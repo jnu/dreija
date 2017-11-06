@@ -4,7 +4,6 @@ var UglifyJsPlugin = require('webpack/lib/optimize/UglifyJsPlugin');
 
 // Use chunkhash so the same file can be produced in different locations.
 config.output.filename = `[name]-[chunkhash].js`;
-config.debug = false;
 config.plugins = config.plugins.concat([
 
     new UglifyJsPlugin({

@@ -23,15 +23,19 @@ var config = {
     },
 
     resolve: {
-        root: APP_ROOT
+        modules: [
+            APP_ROOT,
+             path.resolve(__dirname, '..', '..', 'src', 'shared'),
+            'node_modules'
+        ]
     },
 
     module: {
-        loaders: [
+        rules: [
             {
                 test: /\.less$/,
                 exclude: /node_modules[\.\\](?!dreija)/,
-                loaders: ['style', 'css', 'less']
+                use: ['style-loader', 'css-loader', 'less-loader']
             }
         ]
     }
