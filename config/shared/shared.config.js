@@ -65,6 +65,12 @@ var config = {
         new ContextReplacementPlugin(
             /encoding/,
             'iconv'
+        ),
+
+        // Not important
+        new ContextReplacementPlugin(
+            /ajv/,
+            ''
         )
 
     ]
