@@ -537,11 +537,16 @@ app.use('/public', express.static(path.join('.', 'dist', 'public')));
 
 // Apply custom API config if given.
 if (dreijaCustomAPI) {
+    logger.info('Installing custom API.');
     dreijaCustomAPI(app, {
         redisClient,
         userModel,
         couchClient,
-    });
+        logger,
+        ensureAuth,
+        noCache,
+        getRequestAuth,
+    }, secrets);
 }
 
 // Detect when static pages should be sent
