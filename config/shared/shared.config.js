@@ -3,6 +3,8 @@
  */
 var path = require('path');
 var DefinePlugin = require('webpack/lib/DefinePlugin');
+var ContextReplacementPlugin = require('webpack/lib/ContextReplacementPlugin');
+
 
 
 var config = {
@@ -50,7 +52,20 @@ var config = {
 
         new DefinePlugin({
             'process.env.NODE_ENV': "'" + process.env.NODE_ENV + "'"
-        })
+        }),
+
+        // Don't auto-include anything from the express view. The valid options
+        // here are expected to be installed through npm.
+        new ContextReplacementPlugin(
+            /express/,
+            ''
+        ),
+
+        // See encoding/lib/iconv-loader.js
+        new ContextReplacementPlugin(
+            /encoding/,
+            'iconv'
+        )
 
     ]
 

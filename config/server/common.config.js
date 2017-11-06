@@ -7,7 +7,6 @@ var deepMerge = require('../../lib/deepMerge');
 var sharedConfig = require('../shared/shared.config');
 var BannerPlugin = require('webpack/lib/BannerPlugin');
 
-
 var APP_ROOT = path.resolve(__dirname, '..', '..', 'src', 'server');
 
 // Use CommonJS requires for node modules. Everything else will be bundled.
@@ -84,7 +83,7 @@ var config = {
             banner: 'require("source-map-support").install();',
             raw: true,
             entryOnly: false
-        })
+        }),
 
     ],
 
