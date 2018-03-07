@@ -74,11 +74,13 @@ export default class Dreija {
             },
             content: script
         });
+        return this;
     }
 
     inject(injectionSpec) {
         // TODO(jnu) document how to use this.
         this.state.injections.push(injectionSpec);
+        return this;
     }
 
     injections() {
